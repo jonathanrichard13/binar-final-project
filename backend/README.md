@@ -69,6 +69,7 @@ The documentation includes:
 - `GET /api/analytics/queries` - Get query analytics
 - `GET /api/analytics/performance` - Get performance metrics
 - `GET /api/analytics/faq-stats` - Get FAQ effectiveness stats
+- `GET /api/analytics/unanswered` - Get unanswered queries to identify content gaps
 
 ### System Endpoints
 

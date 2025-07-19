@@ -298,6 +298,206 @@ router.get("/faq-stats", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/analytics/unanswered:
+ *   get:
+ *     summary: Get unanswered queries
+ *     description: Returns queries that received 'no_answer' status to identify FAQ content gaps
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: timeRange
+ *         schema:
+ *           type: string
+ *           enum: [1h, 24h, 7d, 30d, 90d, 1y]
+ *           default: 7d
+ *         description: Time range for unanswered queries
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Number of results per page
+ *       - in: query
+ *         name: groupSimilar
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Group similar queries together
+ *     responses:
+ *       200:
+ *         description: List of unanswered queries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 unansweredQueries:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id: { type: integer }
+ *                       query_text: { type: string }
+ *                       timestamp: { type: string, format: date-time }
+ *                       session_id: { type: string }
+ *                       processing_time: { type: number }
+ *                       frequency: { type: integer, description: "How many times this query appeared" }
+ *                 summary:
+ *                   type: object
+ *                   properties:
+ *                     totalUnanswered: { type: integer }
+ *                     uniqueQueries: { type: integer }
+ *                     topUnansweredCategories: { type: array }
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page: { type: integer }
+ *                     limit: { type: integer }
+ *                     total: { type: integer }
+ *                     totalPages: { type: integer }
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+// GET /api/analytics/unanswered
+router.get("/unanswered", async (req, res) => {
+  try {
+    const timeRange = (req.query.timeRange as string) || "7d";
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const groupSimilar = req.query.groupSimilar === "true";
+    const offset = (page - 1) * limit;
+
+    const whereClause = getTimeRangeClause(timeRange);
+
+    let unansweredQueries;
+    let totalCount;
+
+    if (groupSimilar) {
+      // Group similar queries and count frequency
+      unansweredQueries = await pool.query(
+        `SELECT 
+          MIN(id) as id,
+          query_text,
+          COUNT(*) as frequency,
+          MAX(timestamp) as latest_timestamp,
+          MIN(timestamp) as first_timestamp,
+          AVG(processing_time) as avg_processing_time,
+          ARRAY_AGG(DISTINCT session_id) as session_ids
+         FROM faq_interactions 
+         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+         GROUP BY LOWER(TRIM(query_text))
+         ORDER BY frequency DESC, latest_timestamp DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      // Get total count of unique unanswered queries
+      const countResult = await pool.query(
+        `SELECT COUNT(DISTINCT LOWER(TRIM(query_text))) as total 
+         FROM faq_interactions 
+         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+      );
+      totalCount = parseInt(countResult.rows[0].total);
+    } else {
+      // Get individual unanswered queries
+      unansweredQueries = await pool.query(
+        `SELECT 
+          id,
+          query_text,
+          timestamp,
+          session_id,
+          processing_time,
+          reasoning
+         FROM faq_interactions 
+         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+         ORDER BY timestamp DESC
+         LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      // Get total count
+      const countResult = await pool.query(
+        `SELECT COUNT(*) as total 
+         FROM faq_interactions 
+         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+      );
+      totalCount = parseInt(countResult.rows[0].total);
+    }
+
+    // Get summary statistics
+    const summaryResult = await pool.query(
+      `SELECT 
+        COUNT(*) as total_unanswered,
+        COUNT(DISTINCT LOWER(TRIM(query_text))) as unique_queries
+       FROM faq_interactions 
+       WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+    );
+
+    // Analyze common keywords in unanswered queries for categories
+    const keywordAnalysis = await pool.query(
+      `WITH words AS (
+        SELECT 
+          UNNEST(string_to_array(LOWER(query_text), ' ')) as word
+        FROM faq_interactions 
+        WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+       )
+       SELECT 
+        word,
+        COUNT(*) as frequency
+       FROM words
+       WHERE LENGTH(word) > 3
+       GROUP BY word
+       ORDER BY frequency DESC
+       LIMIT 10`
+    );
+
+    // Get time distribution of unanswered queries
+    const timeDistribution = await pool.query(
+      `SELECT 
+        DATE_TRUNC('day', timestamp) as date,
+        COUNT(*) as unanswered_count
+       FROM faq_interactions 
+       WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+       GROUP BY date
+       ORDER BY date DESC
+       LIMIT 30`
+    );
+
+    res.json({
+      unansweredQueries: unansweredQueries.rows,
+      summary: {
+        totalUnanswered: parseInt(summaryResult.rows[0].total_unanswered),
+        uniqueQueries: parseInt(summaryResult.rows[0].unique_queries),
+        topKeywords: keywordAnalysis.rows,
+        timeDistribution: timeDistribution.rows,
+      },
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+      groupSimilar,
+    });
+  } catch (error) {
+    logger.error("Error fetching unanswered queries:", error);
+    res.status(500).json({ error: "Failed to fetch unanswered queries" });
+  }
+});
+
 // Helper function to generate time range WHERE clause
 function getTimeRangeClause(timeRange: string): string {
   const now = new Date();
