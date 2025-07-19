@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 import sys
+import uuid
 from datetime import datetime
 from typing import Dict, Optional
 from pathlib import Path
@@ -14,6 +15,7 @@ import mcp.server.stdio
 
 from faq_content_manager import FAQContentManager
 from claude_reasoning_engine import ClaudeReasoningEngine
+from analytics_logger import analytics_logger
 
 
 # Configure logging to stderr so it appears in Claude Desktop logs
@@ -88,6 +90,11 @@ async def handle_list_tools() -> list[types.Tool]:
             description="Reload FAQ content from files",
             inputSchema={"type": "object", "properties": {}},
         ),
+        types.Tool(
+            name="get_analytics_summary",
+            description="Get current analytics summary including query stats and unanswered questions",
+            inputSchema={"type": "object", "properties": {}},
+        ),
     ]
 
 
@@ -108,7 +115,9 @@ async def handle_call_tool(
                 ]
 
             query = arguments["query"]
-            result = await handle_query(query)
+
+            # Log the query at the tool level and get result with analytics
+            result = await handle_query_with_analytics(query)
             return [types.TextContent(type="text", text=str(result))]
 
         elif name == "list_faq_files":
@@ -117,6 +126,10 @@ async def handle_call_tool(
 
         elif name == "reload_faq_content":
             result = await reload_faqs()
+            return [types.TextContent(type="text", text=str(result))]
+
+        elif name == "get_analytics_summary":
+            result = await get_analytics_summary()
             return [types.TextContent(type="text", text=str(result))]
 
         else:
@@ -129,8 +142,137 @@ async def handle_call_tool(
         return [types.TextContent(type="text", text=f"Error: {str(e)}")]
 
 
+async def handle_query_with_analytics(query: str) -> Dict:
+    """Handle query with comprehensive analytics logging at the tool level"""
+    start_time = time.time()
+    session_id = str(uuid.uuid4())  # Generate unique session ID
+
+    try:
+        # Validate input
+        if not query or not query.strip():
+            error_response = {
+                "status": "error",
+                "message": "Query cannot be empty",
+                "processing_time": time.time() - start_time,
+                "session_id": session_id,
+            }
+
+            # Log error interaction
+            await analytics_logger.log_faq_interaction(
+                {
+                    "query_text": query,
+                    "status": "error",
+                    "reasoning": "Empty query",
+                    "processing_time": error_response["processing_time"],
+                    "session_id": session_id,
+                }
+            )
+
+            return error_response
+
+        send_log_message(
+            f"Processing tool query: {query[:100]}... (Session: {session_id})"
+        )
+
+        # Process the query using the core handler
+        result = await handle_query(query)
+        processing_time = time.time() - start_time
+
+        # Add session ID to response
+        result["session_id"] = session_id
+        result["processing_time"] = processing_time
+
+        # Log interaction based on result
+        if result.get("status") == "success":
+            # Log successful interaction
+            await analytics_logger.log_faq_interaction(
+                {
+                    "query_text": query,
+                    "status": "success",
+                    "source_file": result.get("source_file"),
+                    "reasoning": result.get("reasoning"),
+                    "processing_time": processing_time,
+                    "session_id": session_id,
+                }
+            )
+
+            send_log_message(
+                f"Tool query answered successfully from {result.get('source_file')} (Session: {session_id})"
+            )
+
+        elif result.get("status") == "no_answer":
+            # Log unanswered interaction
+            await analytics_logger.log_faq_interaction(
+                {
+                    "query_text": query,
+                    "status": "no_answer",
+                    "reasoning": result.get("reasoning"),
+                    "processing_time": processing_time,
+                    "session_id": session_id,
+                }
+            )
+
+            # Log as unanswered question for content gap analysis
+            await analytics_logger.log_unanswered_question(
+                {
+                    "question": query,
+                    "session_id": session_id,
+                    "reasoning_trace": {
+                        "status": "no_answer",
+                        "reasoning": result.get("reasoning"),
+                    },
+                }
+            )
+
+            send_log_message(
+                f"Tool query could not be answered - logged for analysis (Session: {session_id})"
+            )
+
+        else:
+            # Log error interaction
+            await analytics_logger.log_faq_interaction(
+                {
+                    "query_text": query,
+                    "status": "error",
+                    "reasoning": result.get("message", "Unknown error"),
+                    "processing_time": processing_time,
+                    "session_id": session_id,
+                }
+            )
+
+        # Log system performance metric
+        await analytics_logger.log_system_metric(
+            "response_time", processing_time * 1000, "ms"  # Convert to milliseconds
+        )
+
+        return result
+
+    except Exception as e:
+        processing_time = time.time() - start_time
+        error_response = {
+            "status": "error",
+            "message": f"Internal server error: {str(e)}",
+            "processing_time": processing_time,
+            "session_id": session_id,
+        }
+
+        # Log error interaction
+        await analytics_logger.log_faq_interaction(
+            {
+                "query_text": query,
+                "status": "error",
+                "reasoning": f"Exception: {str(e)}",
+                "processing_time": processing_time,
+                "session_id": session_id,
+            }
+        )
+
+        send_log_message(f"Error processing tool query (Session: {session_id}): {e}")
+        return error_response
+
+
 async def handle_query(query: str) -> Dict:
-    """Orchestrate FAQ analysis and response generation"""
+    """Core FAQ analysis and response generation without analytics logging"""
     start_time = time.time()
 
     try:
@@ -142,7 +284,7 @@ async def handle_query(query: str) -> Dict:
                 "processing_time": time.time() - start_time,
             }
 
-        send_log_message(f"Processing query: {query[:100]}...")
+        send_log_message(f"Processing core query: {query[:100]}...")
 
         # Ensure FAQ content is loaded
         if not faq_server_instance.faq_manager.faq_content:
@@ -180,8 +322,9 @@ async def handle_query(query: str) -> Dict:
                 ),
                 "processing_time": processing_time,
             }
+
             send_log_message(
-                f"Query answered successfully from {analysis_result.get('best_match_file')}"
+                f"Core query answered successfully from {analysis_result.get('best_match_file')}"
             )
         else:
             response = {
@@ -192,13 +335,16 @@ async def handle_query(query: str) -> Dict:
                 ),
                 "processing_time": processing_time,
             }
-            send_log_message("Query could not be answered - no relevant content found")
+
+            send_log_message(
+                "Core query could not be answered - no relevant content found"
+            )
 
         return response
 
     except Exception as e:
         processing_time = time.time() - start_time
-        error_msg = f"Error processing query: {str(e)}"
+        error_msg = f"Error processing core query: {str(e)}"
         send_log_message(error_msg)
 
         return {
@@ -258,6 +404,30 @@ async def reload_faqs() -> Dict:
 
     except Exception as e:
         return {"status": "error", "message": f"Error reloading FAQ content: {str(e)}"}
+
+
+async def get_analytics_summary() -> Dict:
+    """Get analytics summary from the database"""
+    try:
+        summary = await analytics_logger.get_analytics_summary()
+
+        # Add server-specific information
+        summary.update(
+            {
+                "server_status": "running",
+                "faq_files_loaded": len(faq_server_instance.faq_manager.faq_content),
+                "server_uptime": "Available in future version",
+            }
+        )
+
+        return {"status": "success", "analytics": summary}
+
+    except Exception as e:
+        send_log_message(f"Error getting analytics summary: {e}")
+        return {
+            "status": "error",
+            "message": f"Failed to get analytics summary: {str(e)}",
+        }
 
 
 async def main():
