@@ -266,7 +266,7 @@ router.get("/faq-stats", async (req, res) => {
         COUNT(*) as total_queries,
         COUNT(CASE WHEN status = 'success' THEN 1 END) as successful_queries,
         ROUND(
-          (COUNT(CASE WHEN status = 'success' THEN 1 END)::FLOAT / COUNT(*)::FLOAT) * 100, 
+          (COUNT(CASE WHEN status = 'success' THEN 1 END)::NUMERIC / COUNT(*)::NUMERIC) * 100, 
           2
         ) as success_rate,
         AVG(processing_time) as avg_response_time
