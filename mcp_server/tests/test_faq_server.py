@@ -9,8 +9,8 @@ import json
 import sys
 from pathlib import Path
 
-# Add current directory to path to import our modules
-sys.path.append(str(Path(__file__).parent))
+# Add parent directory to path to import our modules
+sys.path.append(str(Path(__file__).parent.parent))
 
 from faq_content_manager import FAQContentManager
 from claude_reasoning_engine import ClaudeReasoningEngine

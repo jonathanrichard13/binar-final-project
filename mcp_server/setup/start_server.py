@@ -11,14 +11,16 @@ from pathlib import Path
 def main():
     """Launch the FAQ MCP Server"""
 
-    # Check if we're in the right directory
-    if not Path("faq_mcp_server.py").exists():
-        print("❌ Error: faq_mcp_server.py not found in current directory")
-        print("   Please run this script from the FAQ MCP Server directory")
+    # Check if we're in the right directory (parent directory should have the server file)
+    server_file = Path("../faq_mcp_server.py")
+    if not server_file.exists():
+        print("❌ Error: faq_mcp_server.py not found in parent directory")
+        print("   Please run this script from the FAQ MCP Server setup directory")
         return 1
 
-    # Check if FAQ directory exists
-    if not Path("faq").exists():
+    # Check if FAQ directory exists (in parent directory)
+    faq_dir = Path("../faq")
+    if not faq_dir.exists():
         print("❌ Error: faq/ directory not found")
         print("   Please ensure the FAQ directory exists with .txt files")
         return 1
@@ -28,8 +30,10 @@ def main():
     print("-" * 50)
 
     try:
-        # Run the server
-        result = subprocess.run([sys.executable, "faq_mcp_server.py"])
+        # Run the server (change to parent directory first)
+        result = subprocess.run(
+            [sys.executable, "../faq_mcp_server.py"], cwd=Path(__file__).parent.parent
+        )
         return result.returncode
 
     except KeyboardInterrupt:
