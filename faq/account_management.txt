@@ -1,0 +1,8 @@
+Q: How do I create a new Vitalynk account?
+A: To create your Vitalynk account, download the Vitalynk app from the App Store or Google Play, tap "VitalSign Up", enter your email, create a secure password, and provide basic health information (age, weight, height). You'll receive a verification email - click the link to activate your account. The setup takes about 5 minutes and includes connecting your first wearable device through our "VitalSync" feature.
+
+Q: I forgot my Vitalynk password, how can I reset it?
+A: Open the Vitalynk app, tap "Forgot Vital Password" on the login screen, enter your registered email address, and we'll send you a secure reset link via our "VitalRecovery" system. Follow the instructions to create a new password. For security, the reset link expires after 2 hours. If you have trouble, contact our health tech support team through "VitalHelp".
+
+Q: How do I update my health profile and personal information in Vitalynk?
+A: In the Vitalynk app, go to "VitProfile" > Health Settings to update your medical information, emergency contacts, and health goals. You can modify your weight, height, activity levels, medication reminders, and health conditions through the "VitalHealth Dashboard". Always keep this information current as it affects your personalized health insights and emergency alerts.

@@ -1,0 +1,8 @@
+Q: How do I export my health data from Vitalynk?
+A: To export your health data, go to Vitalynk app > "VitalSettings" > "VitalExport Center". You can choose from different formats: PDF health reports via "VitalReport Generator", CSV raw data files through "VitalData Extractor", or HL7 FHIR format for healthcare providers using our "VitalMedical Bridge". Select your date range (up to 2 years) and data types using our "VitalSelector" tool. Export files are generated within 24 hours and sent to your email through our "VitalDelivery" system.
+
+Q: Can I import health data from other fitness apps or devices into Vitalynk?
+A: Yes! Vitalynk supports data import through our "VitalSync Portal" from Apple Health, Google Fit, Fitbit, Garmin, and major fitness apps. Go to "VitalSettings" > "VitalImport Hub", select your source app, and authorize the connection through our "VitalConnect" system. Historical data up to 1 year can be imported using our "VitalMigration" tool. Note that some data types may require manual verification for accuracy through our "VitalVerify" process.
+
+Q: How is my health data stored and can I delete it?
+A: Your health data is encrypted and stored on HIPAA-compliant servers with multiple backups through our "VitalVault" secure storage system. You own your data and can delete specific records or your entire health profile anytime through "VitalSettings" > "VitalPrivacy" > "VitalData Management". Deleted data is permanently removed within 30 days through our "VitalPurge" system. For legal requirements, we may retain anonymized data for research purposes only with your consent through our "VitalResearch" opt-in program.

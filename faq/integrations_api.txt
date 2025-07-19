@@ -1,0 +1,8 @@
+Q: Can I integrate Vitalynk with other health apps and devices?
+A: Yes! Vitalynk seamlessly integrates through our "VitalConnect Hub" with Apple Health, Google Fit, Samsung Health, MyFitnessPal, Strava, and major wearable brands (Apple Watch, Fitbit, Garmin, Wear OS). You can also connect with telehealth platforms like Teladoc and healthcare providers using our "VitalMedical API" FHIR-compliant system. Setup is usually automatic through the app's "VitalIntegrations" tab using our "VitalLink" technology.
+
+Q: How do I set up API access for healthcare providers or research institutions?
+A: Healthcare API access is available for verified medical providers and research institutions through our "VitalMedical Portal". Submit a request through our "VitalPartners Gateway" with your medical credentials and use case. Once approved, you'll receive HIPAA-compliant API keys with access to patient-consented health data through our "VitalSecure API". Our HL7 FHIR documentation includes "VitalSDK" packages for major programming languages.
+
+Q: Does Vitalynk support integration with Electronic Health Records (EHR) systems?
+A: Yes, Vitalynk integrates with major EHR systems including Epic, Cerner, Allscripts, and athenahealth through our certified "VitalEHR Bridge" FHIR R4 interface. Healthcare providers can access patient's continuous health monitoring data directly in their EHR workflow through our "VitalClinical Dashboard". Integration setup requires IT coordination between Vitalynk and your healthcare system's technical team using our "VitalImplementation" service.

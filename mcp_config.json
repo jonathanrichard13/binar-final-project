@@ -1,0 +1,45 @@
+{
+  "name": "faq-mcp-server",
+  "version": "1.0.0",
+  "description": "FAQ answering system with Claude chain-of-thoughts analysis",
+  "author": "FAQ MCP Team",
+  "main": "faq_mcp_server.py",
+  "tools": [
+    {
+      "name": "answer_faq",
+      "description": "Answer questions based on FAQ knowledge base",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "User question to be answered"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "list_faq_files",
+      "description": "List all available FAQ files and their content summary",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "reload_faq_content",
+      "description": "Reload FAQ content from files",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "settings": {
+    "faq_directory": "./faq",
+    "log_level": "INFO",
+    "max_concurrent_queries": 5,
+    "response_timeout": 5.0
+  }
+}

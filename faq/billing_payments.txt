@@ -1,0 +1,8 @@
+Q: What are Vitalynk's subscription plans and pricing?
+A: Vitalynk offers three plans: VitalBasic (free) includes heart rate monitoring and step tracking; VitalPremium ($9.99/month) adds sleep analysis, stress monitoring, and workout insights through our "VitalInsight Engine"; VitalPro ($19.99/month) includes all features plus advanced health analytics, "VitalFamily" sharing for up to 4 members, and "VitalCare" telehealth integration. Annual subscriptions get 20% off with our "VitalYear" discount.
+
+Q: What payment methods does Vitalynk accept?
+A: We accept all major credit cards (Visa, MasterCard, American Express, Discover), PayPal, Apple Pay, Google Pay, and HSA/FSA cards for qualifying health-related purchases through our "VitalPay" secure payment system. Payments are processed monthly or annually based on your chosen plan through our encrypted "VitalVault" billing system.
+
+Q: How do I cancel my Vitalynk subscription and get a refund?
+A: To cancel, go to the Vitalynk app > "VitalSettings" > "VitalSubscription" > "Manage VitalPlan", then select "Cancel VitalSubscription". Your premium features remain active until the end of your current billing period. We offer a 30-day "VitalGuarantee" money-back policy for new subscribers. Refunds are processed within 5-7 business days through our "VitalRefund" system to your original payment method.

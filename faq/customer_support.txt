@@ -1,0 +1,8 @@
+Q: How do I contact Vitalynk health tech support?
+A: You can reach our health technology support team through multiple channels: email us at healthsupport@vitalynk.com, use the "VitalChat" in-app feature (available 24/7 for health emergencies), call our dedicated "VitalLine" health tech support at 1-800-VITAL-NK (1-800-848-2565), or visit our "VitalHelp Center" online. For medical emergencies, always call 911 first, then use our "VitalAlert" emergency feature.
+
+Q: What are Vitalynk's customer support hours for non-emergency issues?
+A: Our "VitalSupport" team is available Monday through Friday from 6 AM to 10 PM PST, and weekends 8 AM to 6 PM PST. Health monitoring alerts and device connectivity issues have 24/7 "VitalEmergency" support through our "VitalResponse" system. We aim to respond to all health-related inquiries within 2 hours and general questions within 4 hours through our "VitalTicket" system.
+
+Q: How can I get help with my wearable device connectivity or health data accuracy?
+A: For device issues, go to Vitalynk app > "VitalSettings" > "VitalDevice Support", run the automated "VitalDiagnostics", and follow the troubleshooting steps in our "VitalFix" system. If problems persist, contact our device specialists at devices@vitalynk.com with your device model and error details through our "VitalReport" feature. We offer free device replacement within the first year through our "VitalWarranty" program for manufacturing defects.
