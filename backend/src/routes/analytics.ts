@@ -157,14 +157,14 @@ router.get("/queries", async (req, res) => {
 
     const whereClause = getTimeRangeClause(timeRange);
 
-    // Get query patterns
+    // Get query patterns - convert timestamp to string to prevent timezone conversion
     const queriesResult = await pool.query(
       `SELECT 
         query_text,
         status,
         source_file,
         processing_time,
-        timestamp,
+        timestamp::text as timestamp,
         user_feedback
        FROM faq_interactions ${whereClause}
        ORDER BY timestamp DESC
@@ -390,7 +390,7 @@ router.get("/unanswered", async (req, res) => {
       unansweredQueries = await pool.query(
         `SELECT 
           MIN(id) as id,
-          query_text,
+          LOWER(TRIM(query_text)) as query_text,
           COUNT(*) as frequency,
           MAX(timestamp) as latest_timestamp,
           MIN(timestamp) as first_timestamp,
@@ -657,6 +657,119 @@ router.get("/hourly-queries", async (req, res) => {
   } catch (error) {
     logger.error("Error fetching hourly query data:", error);
     res.status(500).json({ error: "Failed to fetch hourly query data" });
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/daily-queries:
+ *   get:
+ *     summary: Get daily query counts
+ *     description: Returns query counts aggregated by day for a specified time range
+ *     tags: [Analytics]
+ *     parameters:
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           default: 7
+ *         description: Number of days to look back (default 7)
+ *     responses:
+ *       200:
+ *         description: Daily query data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalQueries:
+ *                   type: integer
+ *                 dailyData:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       date:
+ *                         type: string
+ *                         format: date
+ *                       count:
+ *                         type: integer
+ *                       percentage:
+ *                         type: number
+ *       400:
+ *         description: Invalid parameters
+ *       500:
+ *         description: Server error
+ */
+
+// GET /api/analytics/daily-queries
+router.get("/daily-queries", async (req, res) => {
+  try {
+    const daysParam = req.query.days as string;
+    const days = daysParam ? parseInt(daysParam) : 7;
+
+    // Validate days parameter
+    if (isNaN(days) || days < 1 || days > 365) {
+      return res.status(400).json({
+        error: "Days parameter must be a number between 1 and 365",
+      });
+    }
+
+    console.log(`Querying for last ${days} days`);
+
+    // Get daily query counts - extract date from timestamp string to avoid timezone issues
+    const dailyResult = await pool.query(
+      `SELECT 
+        SPLIT_PART(timestamp::text, ' ', 1) as date,
+        COUNT(*) as count
+       FROM faq_interactions 
+       WHERE timestamp >= CURRENT_DATE - INTERVAL '${days} days'
+       GROUP BY SPLIT_PART(timestamp::text, ' ', 1)
+       ORDER BY date ASC`
+    );
+
+    // Get total queries for the period
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) as total
+       FROM faq_interactions 
+       WHERE timestamp >= CURRENT_DATE - INTERVAL '${days} days'`
+    );
+
+    const totalQueries = parseInt(totalResult.rows[0].total);
+
+    // Create a complete array for all days in the range, including days with 0 queries
+    const dailyData = [];
+
+    // Generate all dates in the range
+    for (let i = days - 1; i >= 0; i--) {
+      // Get the date string for each day in the range
+      const dateResult = await pool.query(
+        `SELECT TO_CHAR((CURRENT_DATE - INTERVAL '${i} days'), 'YYYY-MM-DD') as target_date`
+      );
+      const dateStr = dateResult.rows[0].target_date;
+
+      // Find if we have data for this date
+      const dayData = dailyResult.rows.find((row) => row.date === dateStr);
+      const count = dayData ? parseInt(dayData.count) : 0;
+      const percentage = totalQueries > 0 ? (count / totalQueries) * 100 : 0;
+
+      dailyData.push({
+        date: dateStr,
+        count,
+        percentage: Math.round(percentage * 100) / 100,
+      });
+    }
+
+    console.log("Raw database results:", dailyResult.rows);
+    console.log("Processed daily data:", dailyData);
+
+    res.json({
+      totalQueries,
+      dailyData,
+    });
+  } catch (error) {
+    logger.error("Error fetching daily query data:", error);
+    res.status(500).json({ error: "Failed to fetch daily query data" });
   }
 });
 

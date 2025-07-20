@@ -44,6 +44,7 @@ export interface UnansweredParams {
   limit?: number;
   sortBy?: "count" | "recent";
   keyword?: string;
+  groupSimilar?: boolean;
 }
 
 export interface AnalyticsResponse {
@@ -84,37 +85,35 @@ export interface AnalyticsResponse {
 }
 
 export interface UnansweredResponse {
-  data: {
-    unansweredQueries: Array<{
-      id?: number;
-      query_text: string;
-      frequency?: number;
-      latest_timestamp?: string;
-      timestamp?: string;
-      first_timestamp?: string;
-      avg_processing_time?: number;
-      session_ids?: string[];
+  unansweredQueries: Array<{
+    id?: number;
+    query_text: string;
+    frequency?: number;
+    latest_timestamp?: string;
+    timestamp?: string;
+    first_timestamp?: string;
+    avg_processing_time?: number;
+    session_ids?: string[];
+  }>;
+  summary: {
+    totalUnanswered: number;
+    uniqueQueries: number;
+    topKeywords: Array<{
+      word: string;
+      frequency: string;
     }>;
-    summary: {
-      totalUnanswered: number;
-      uniqueQueries: number;
-      topKeywords: Array<{
-        keyword: string;
-        frequency: number;
-      }>;
-      timeDistribution: Array<{
-        date: string;
-        unanswered_count: string;
-      }>;
-    };
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-    groupSimilar: boolean;
+    timeDistribution: Array<{
+      date: string;
+      unanswered_count: string;
+    }>;
   };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  groupSimilar: boolean;
 }
 
 // Analytics API endpoints
@@ -152,6 +151,17 @@ export const analyticsApi = {
         }>;
       };
     }>("/analytics/hourly-queries", { params: { date } }),
+
+  // Get daily query counts for a time range
+  getDailyQueries: (days: number = 7) =>
+    api.get<{
+      totalQueries: number;
+      dailyData: Array<{
+        date: string;
+        count: number;
+        percentage: number;
+      }>;
+    }>("/analytics/daily-queries", { params: { days } }),
 
   // Export analytics data
   exportData: (format: "csv" | "json" = "csv", params?: AnalyticsParams) =>

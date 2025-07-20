@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { analyticsApi } from "../utils/api";
 import { formatNumber, formatDate, formatDateTime } from "../utils/helpers";
-import { LineChart, BarChart } from "../components/Charts";
+import { LineChart, DoughnutChart } from "../components/Charts";
 
 interface QueryAnalytics {
   totalQueries: number;
   queryTrends: Array<{
     date: string;
     queries: number;
-  }>;
-  topQueries: Array<{
-    query: string;
-    count: number;
-    avg_response_time: number;
   }>;
   categoryBreakdown: Array<{
     filename: string;
@@ -42,11 +37,11 @@ const QueryAnalytics: React.FC = () => {
       try {
         setLoading(true);
 
-        // Get current date for hourly trends
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        // Get days based on timeframe
+        const days = timeframe === "today" ? 1 : timeframe === "week" ? 7 : 30;
 
-        // Fetch query data and hourly trends
-        const [queryResponse, hourlyResponse] = await Promise.all([
+        // Fetch query data and daily trends
+        const [queryResponse, dailyResponse] = await Promise.all([
           analyticsApi.getAnalytics({
             timeRange:
               timeframe === "today"
@@ -57,11 +52,15 @@ const QueryAnalytics: React.FC = () => {
             page: 1,
             limit: 100,
           }),
-          analyticsApi.getHourlyQueries(today),
+          analyticsApi.getDailyQueries(days),
         ]);
 
-        const queryData = queryResponse.data;
-        const hourlyData = hourlyResponse.data.data; // Access nested data property
+        console.log("Query response:", queryResponse.data);
+        console.log("Daily response:", dailyResponse.data);
+
+        // The API returns data directly, not wrapped in a data property
+        const queryData = queryResponse.data as any; // Use any to bypass type checking for now
+        const dailyData = dailyResponse.data as any;
 
         // Process queries by category (source_file)
         const categoryMap = new Map<
@@ -86,14 +85,12 @@ const QueryAnalytics: React.FC = () => {
 
         // Transform the backend data to match component expectations
         const transformedData: QueryAnalytics = {
-          totalQueries: queryData.pagination?.total || 0,
-          queryTrends: hourlyData.hourlyData.map((item: any) => ({
-            date: `${hourlyData.date} ${item.hour
-              .toString()
-              .padStart(2, "0")}:00`,
-            queries: item.count,
-          })),
-          topQueries: [], // We'll need to aggregate this from queries
+          totalQueries: dailyData.totalQueries || 0, // Use total from daily data instead
+          queryTrends:
+            dailyData.dailyData?.map((item: any) => ({
+              date: item.date,
+              queries: item.count,
+            })) || [],
           categoryBreakdown: Array.from(categoryMap.entries()).map(
             ([filename, data]) => ({
               filename,
@@ -105,8 +102,8 @@ const QueryAnalytics: React.FC = () => {
             })
           ),
           recentQueries:
-            queryData.queries?.map((q: any) => ({
-              id: Math.random(), // Backend doesn't provide id, use random
+            queryData.queries?.map((q: any, index: number) => ({
+              id: index + 1, // Use index as id instead of random
               query: q.query_text,
               filename: q.source_file || "unknown",
               response_time: q.processing_time || 0,
@@ -169,10 +166,10 @@ const QueryAnalytics: React.FC = () => {
     ],
   };
 
-  // Chart data for category breakdown
+  // Chart data for category breakdown (pie chart)
   const categoryChartData = {
     labels: data.categoryBreakdown.map((cat) =>
-      cat.filename.replace(".txt", "")
+      cat.filename.replace(".txt", "").replace("_", " ").toUpperCase()
     ),
     datasets: [
       {
@@ -186,7 +183,12 @@ const QueryAnalytics: React.FC = () => {
           "rgba(139, 92, 246, 0.8)",
           "rgba(236, 72, 153, 0.8)",
           "rgba(34, 197, 94, 0.8)",
+          "rgba(251, 146, 60, 0.8)",
+          "rgba(168, 85, 247, 0.8)",
+          "rgba(6, 182, 212, 0.8)",
         ],
+        borderWidth: 2,
+        borderColor: "rgba(255, 255, 255, 1)",
       },
     ],
   };
@@ -292,7 +294,12 @@ const QueryAnalytics: React.FC = () => {
               <p className="text-2xl font-bold text-gray-900">
                 {formatNumber(
                   Math.round(
-                    data.totalQueries / Math.max(data.queryTrends.length, 1)
+                    data.totalQueries /
+                      Math.max(
+                        data.queryTrends.filter((trend) => trend.queries > 0)
+                          .length,
+                        1
+                      )
                   )
                 )}
               </p>
@@ -316,97 +323,99 @@ const QueryAnalytics: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Queries by FAQ Category
           </h3>
-          <BarChart data={categoryChartData} height={300} />
+          <DoughnutChart data={categoryChartData} height={300} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Queries */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Most Popular Queries
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Query
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Count
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avg Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data.topQueries.slice(0, 10).map((query, index) => (
-                  <tr
-                    key={index}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                      {query.query}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatNumber(query.count)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {query.avg_response_time.toFixed(1)}ms
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Recent Queries Table */}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Recent Queries
+          </h3>
         </div>
-
-        {/* Recent Queries */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Recent Queries
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Query
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data.recentQueries.slice(0, 10).map((query, index) => (
-                  <tr
-                    key={query.id}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Query
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Response Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Time
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {data.recentQueries.slice(0, 10).map((query, index) => (
+                <tr
+                  key={query.id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                    <div className="truncate" title={query.query}>
                       {query.query}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {query.filename.replace(".txt", "")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDateTime(query.created_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                      {query.filename.replace(".txt", "").replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {(query.response_time * 1000).toFixed(1)}ms
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        query.success
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {query.success ? "Success" : "Failed"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                    <div className="truncate" title={query.query}>
+                      {query.query}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                      {query.filename.replace(".txt", "").replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {(query.response_time * 1000).toFixed(1)}ms
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        query.success
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {query.success ? "Success" : "Failed"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDateTime(query.created_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

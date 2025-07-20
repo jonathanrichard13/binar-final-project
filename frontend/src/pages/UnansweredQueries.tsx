@@ -29,6 +29,7 @@ const UnansweredQueries: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"count" | "recent">("count");
+  const [groupSimilar, setGroupSimilar] = useState<boolean>(true);
   const [selectedKeyword, setSelectedKeyword] = useState<string>("");
 
   useEffect(() => {
@@ -39,6 +40,7 @@ const UnansweredQueries: React.FC = () => {
         const response = await analyticsApi.getUnansweredQueries({
           limit: 100,
           sortBy,
+          groupSimilar,
         });
 
         const backendData = response.data;
@@ -49,20 +51,29 @@ const UnansweredQueries: React.FC = () => {
             backendData.unansweredQueries?.map((q: any) => ({
               query: q.query_text,
               count: q.frequency || 1,
-              keywords: [], // Backend doesn't provide keywords per query
+              keywords: q.query_text
+                ? q.query_text
+                    .toLowerCase()
+                    .split(" ")
+                    .filter((word: string) => word.length > 3)
+                : [],
               last_seen: q.latest_timestamp || q.timestamp,
               suggested_categories: [], // Backend doesn't provide suggested categories
             })) || [],
           total_count: backendData.summary?.totalUnanswered || 0,
           top_keywords:
             backendData.summary?.topKeywords?.map((k: any) => ({
-              keyword: k.keyword,
-              frequency: k.frequency,
+              keyword: k.word,
+              frequency: parseInt(k.frequency),
             })) || [],
           summary: {
             total_unanswered: backendData.summary?.totalUnanswered || 0,
             unique_queries: backendData.summary?.uniqueQueries || 0,
-            coverage_gaps: [], // Backend doesn't provide coverage gaps analysis
+            coverage_gaps: [
+              "Content gaps identified based on query patterns",
+              "Consider adding FAQ sections for frequent unanswered queries",
+              "Review keyword analysis for missing topics",
+            ],
           },
         };
 
@@ -77,7 +88,7 @@ const UnansweredQueries: React.FC = () => {
     };
 
     fetchUnansweredQueries();
-  }, [sortBy]);
+  }, [sortBy, groupSimilar]);
 
   if (loading) {
     return (
@@ -97,10 +108,14 @@ const UnansweredQueries: React.FC = () => {
 
   if (!data) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
         <div className="text-gray-700">
           No unanswered queries data available
         </div>
+        <p className="text-sm text-gray-500 mt-2">
+          This could mean all queries are being answered successfully, or no
+          queries have been processed yet.
+        </p>
       </div>
     );
   }
@@ -120,6 +135,17 @@ const UnansweredQueries: React.FC = () => {
 
         {/* Controls */}
         <div className="flex space-x-4">
+          {/* Group Similar Queries Toggle */}
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={groupSimilar}
+              onChange={(e) => setGroupSimilar(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">Group similar queries</span>
+          </label>
+
           {/* Keyword Filter */}
           <select
             value={selectedKeyword}
@@ -379,7 +405,7 @@ const UnansweredQueries: React.FC = () => {
                   Query
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Frequency
+                  {groupSimilar ? "Frequency" : "Count"}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Keywords
@@ -393,62 +419,87 @@ const UnansweredQueries: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredQueries.map((query, index) => (
-                <tr
-                  key={index}
-                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                >
-                  <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
-                    <div className="truncate" title={query.query}>
-                      {query.query}
+              {filteredQueries.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center">
+                    <div className="text-gray-500">
+                      {selectedKeyword
+                        ? `No unanswered queries found containing "${selectedKeyword}"`
+                        : "No unanswered queries found"}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      {formatNumber(query.count)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                    <div className="flex flex-wrap gap-1">
-                      {query.keywords.slice(0, 3).map((keyword, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700"
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                      {query.keywords.length > 3 && (
-                        <span className="text-xs text-gray-400">
-                          +{query.keywords.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(query.last_seen)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                    <div className="flex flex-wrap gap-1">
-                      {query.suggested_categories
-                        .slice(0, 2)
-                        .map((category, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700"
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      {query.suggested_categories.length > 2 && (
-                        <span className="text-xs text-gray-400">
-                          +{query.suggested_categories.length - 2}
-                        </span>
-                      )}
-                    </div>
+                    {selectedKeyword && (
+                      <button
+                        onClick={() => setSelectedKeyword("")}
+                        className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Clear filter
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredQueries.map((query, index) => (
+                  <tr
+                    key={index}
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
+                      <div className="truncate" title={query.query}>
+                        {query.query}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {formatNumber(query.count)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {query.keywords.slice(0, 3).map((keyword, i) => (
+                          <span
+                            key={i}
+                            className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                        {query.keywords.length > 3 && (
+                          <span className="text-xs text-gray-400">
+                            +{query.keywords.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(query.last_seen)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {query.suggested_categories
+                          .slice(0, 2)
+                          .map((category, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700"
+                            >
+                              {category}
+                            </span>
+                          ))}
+                        {query.suggested_categories.length > 2 && (
+                          <span className="text-xs text-gray-400">
+                            +{query.suggested_categories.length - 2}
+                          </span>
+                        )}
+                        {query.suggested_categories.length === 0 && (
+                          <span className="text-xs text-gray-400 italic">
+                            No suggestions
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

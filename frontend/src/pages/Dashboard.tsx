@@ -29,47 +29,85 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // TEMPORARY: Hardcode data to test chart rendering
-        const testStats: OverviewStats = {
-          totalQueries: 9,
-          todayQueries: 4,
-          avgResponseTime: 0.008,
-          successRate: 88.89,
-          topFiles: [
-            { filename: "billing_payments.txt", query_count: 2 },
-            { filename: "privacy_security.txt", query_count: 2 },
-            { filename: "subscription_plans.txt", query_count: 2 },
-          ],
-          hourlyTrend: [
-            { hour: 0, queries: 0 },
-            { hour: 1, queries: 0 },
-            { hour: 2, queries: 0 },
-            { hour: 3, queries: 0 },
-            { hour: 4, queries: 0 },
-            { hour: 5, queries: 0 },
-            { hour: 6, queries: 0 },
-            { hour: 7, queries: 0 },
-            { hour: 8, queries: 4 }, // 4 queries at 8 AM
-            { hour: 9, queries: 0 },
-            { hour: 10, queries: 0 },
-            { hour: 11, queries: 0 },
-            { hour: 12, queries: 0 },
-            { hour: 13, queries: 0 },
-            { hour: 14, queries: 0 },
-            { hour: 15, queries: 0 },
-            { hour: 16, queries: 0 },
-            { hour: 17, queries: 0 },
-            { hour: 18, queries: 0 },
-            { hour: 19, queries: 0 },
-            { hour: 20, queries: 0 },
-            { hour: 21, queries: 0 },
-            { hour: 22, queries: 0 },
-            { hour: 23, queries: 0 },
-          ],
+        // Get today's date for hourly trends
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+
+        // Fetch real data from APIs
+        const [overviewResponse, hourlyResponse, queriesResponse] =
+          await Promise.all([
+            analyticsApi.getOverview({ timeRange: "7d" }),
+            analyticsApi.getHourlyQueries(today),
+            analyticsApi.getAnalytics({ timeRange: "7d", page: 1, limit: 100 }),
+          ]);
+
+        console.log("Overview response:", overviewResponse.data);
+        console.log("Hourly response:", hourlyResponse.data);
+        console.log("Queries response:", queriesResponse.data);
+
+        const overviewData = overviewResponse.data as any;
+        const hourlyData = hourlyResponse.data as any;
+        const queriesData = queriesResponse.data as any;
+
+        // Process top files from queries data
+        const fileMap = new Map<string, number>();
+        if (queriesData.queries) {
+          queriesData.queries.forEach((query: any) => {
+            const filename = query.source_file || "unknown";
+            fileMap.set(filename, (fileMap.get(filename) || 0) + 1);
+          });
+        }
+
+        const topFiles = Array.from(fileMap.entries())
+          .map(([filename, count]) => ({
+            filename,
+            query_count: count,
+          }))
+          .sort((a, b) => b.query_count - a.query_count)
+          .slice(0, 5);
+
+        // Calculate success rate from queries data
+        let successCount = 0;
+        let totalCount = 0;
+        if (queriesData.queries) {
+          queriesData.queries.forEach((query: any) => {
+            totalCount++;
+            if (query.status === "success") {
+              successCount++;
+            }
+          });
+        }
+        const successRate =
+          totalCount > 0 ? (successCount / totalCount) * 100 : 0;
+
+        // Calculate average response time
+        let totalResponseTime = 0;
+        let responseTimeCount = 0;
+        if (queriesData.queries) {
+          queriesData.queries.forEach((query: any) => {
+            if (query.processing_time) {
+              totalResponseTime += query.processing_time;
+              responseTimeCount++;
+            }
+          });
+        }
+        const avgResponseTime =
+          responseTimeCount > 0 ? totalResponseTime / responseTimeCount : 0;
+
+        const stats: OverviewStats = {
+          totalQueries: queriesData.pagination?.total || 0,
+          todayQueries: hourlyData.totalQueries || 0,
+          avgResponseTime: avgResponseTime,
+          successRate: Math.round(successRate * 100) / 100,
+          topFiles: topFiles,
+          hourlyTrend:
+            hourlyData.hourlyData?.map((item: any) => ({
+              hour: item.hour,
+              queries: item.count,
+            })) || [],
         };
 
-        console.log("Using test data:", testStats);
-        setStats(testStats);
+        console.log("Processed stats:", stats);
+        setStats(stats);
         setError(null);
       } catch (err) {
         console.error("Detailed error:", err);
