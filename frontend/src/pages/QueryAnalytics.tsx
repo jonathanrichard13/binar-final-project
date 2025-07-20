@@ -42,22 +42,68 @@ const QueryAnalytics: React.FC = () => {
       try {
         setLoading(true);
 
-        // Fetch query data
-        const response = await analyticsApi.getAnalytics({
-          timeframe:
-            timeframe === "today" ? "24h" : timeframe === "week" ? "7d" : "30d",
-          page: 1,
-          limit: 100,
-        });
+        // Get current date for hourly trends
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
-        const queryData = response.data;
+        // Fetch query data and hourly trends
+        const [queryResponse, hourlyResponse] = await Promise.all([
+          analyticsApi.getAnalytics({
+            timeRange:
+              timeframe === "today"
+                ? "24h"
+                : timeframe === "week"
+                ? "7d"
+                : "30d",
+            page: 1,
+            limit: 100,
+          }),
+          analyticsApi.getHourlyQueries(today),
+        ]);
+
+        const queryData = queryResponse.data;
+        const hourlyData = hourlyResponse.data.data; // Access nested data property
+
+        // Process queries by category (source_file)
+        const categoryMap = new Map<
+          string,
+          { count: number; queries: any[] }
+        >();
+        if (queryData.queries) {
+          queryData.queries.forEach((query: any) => {
+            const category = query.source_file || "unknown";
+            if (!categoryMap.has(category)) {
+              categoryMap.set(category, { count: 0, queries: [] });
+            }
+            categoryMap.get(category)!.count++;
+            categoryMap.get(category)!.queries.push(query);
+          });
+        }
+
+        const totalCategoryQueries = Array.from(categoryMap.values()).reduce(
+          (sum, cat) => sum + cat.count,
+          0
+        );
 
         // Transform the backend data to match component expectations
         const transformedData: QueryAnalytics = {
           totalQueries: queryData.pagination?.total || 0,
-          queryTrends: [], // We'll need to get this from overview endpoint
-          topQueries: [], // Transform from queries array
-          categoryBreakdown: [], // We'll need to analyze source_file field
+          queryTrends: hourlyData.hourlyData.map((item: any) => ({
+            date: `${hourlyData.date} ${item.hour
+              .toString()
+              .padStart(2, "0")}:00`,
+            queries: item.count,
+          })),
+          topQueries: [], // We'll need to aggregate this from queries
+          categoryBreakdown: Array.from(categoryMap.entries()).map(
+            ([filename, data]) => ({
+              filename,
+              query_count: data.count,
+              percentage:
+                totalCategoryQueries > 0
+                  ? (data.count / totalCategoryQueries) * 100
+                  : 0,
+            })
+          ),
           recentQueries:
             queryData.queries?.map((q: any) => ({
               id: Math.random(), // Backend doesn't provide id, use random

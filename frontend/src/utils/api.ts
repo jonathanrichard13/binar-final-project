@@ -139,6 +139,20 @@ export const analyticsApi = {
   getUnansweredQueries: (params?: UnansweredParams) =>
     api.get<UnansweredResponse>("/analytics/unanswered", { params }),
 
+  // Get hourly query counts for a specific date
+  getHourlyQueries: (date: string) =>
+    api.get<{
+      data: {
+        date: string;
+        totalQueries: number;
+        hourlyData: Array<{
+          hour: number;
+          count: number;
+          percentage: number;
+        }>;
+      };
+    }>("/analytics/hourly-queries", { params: { date } }),
+
   // Export analytics data
   exportData: (format: "csv" | "json" = "csv", params?: AnalyticsParams) =>
     api.post<Blob>(

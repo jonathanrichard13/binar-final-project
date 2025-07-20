@@ -529,4 +529,140 @@ function getTimeRangeClause(timeRange: string): string {
   return `WHERE timestamp >= '${startTime.toISOString()}'`;
 }
 
+/**
+ * @swagger
+ * /api/analytics/hourly-queries:
+ *   get:
+ *     summary: Get hourly query counts for a specific date
+ *     description: Returns the number of queries aggregated by each hour (0-23) for a given date
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: "2025-07-20"
+ *         description: The date to get hourly query counts for (YYYY-MM-DD format)
+ *     responses:
+ *       200:
+ *         description: Hourly query counts for the specified date
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 date:
+ *                   type: string
+ *                   format: date
+ *                   description: The requested date
+ *                 totalQueries:
+ *                   type: integer
+ *                   description: Total queries for the day
+ *                 hourlyData:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       hour:
+ *                         type: integer
+ *                         minimum: 0
+ *                         maximum: 23
+ *                         description: Hour of the day (0-23)
+ *                       count:
+ *                         type: integer
+ *                         description: Number of queries in that hour
+ *                       percentage:
+ *                         type: number
+ *                         format: float
+ *                         description: Percentage of total daily queries
+ *       400:
+ *         description: Invalid date parameter
+ *       500:
+ *         description: Server error
+ */
+
+// GET /api/analytics/hourly-queries
+router.get("/hourly-queries", async (req, res) => {
+  try {
+    const dateParam = req.query.date as string;
+
+    // Validate date parameter
+    if (!dateParam) {
+      return res.status(400).json({
+        error: "Date parameter is required (format: YYYY-MM-DD)",
+      });
+    }
+
+    // Parse and validate the date
+    const requestedDate = new Date(dateParam);
+    if (isNaN(requestedDate.getTime())) {
+      return res.status(400).json({
+        error: "Invalid date format. Use YYYY-MM-DD format",
+      });
+    }
+
+    // Set the date range for the specific day (00:00:00 to 23:59:59)
+    const startOfDay = new Date(requestedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(requestedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    console.log(`Querying for date: ${dateParam}`);
+
+    // Get hourly query counts - keep it simple and use timestamp as stored
+    const hourlyResult = await pool.query(
+      `SELECT 
+        EXTRACT(HOUR FROM timestamp) as hour,
+        COUNT(*) as count,
+        MIN(timestamp) as first_timestamp,
+        MAX(timestamp) as last_timestamp
+       FROM faq_interactions 
+       WHERE timestamp::date = $1::date
+       GROUP BY EXTRACT(HOUR FROM timestamp)
+       ORDER BY hour`,
+      [dateParam] // Use the date parameter directly
+    );
+
+    // Get total queries for the day
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) as total
+       FROM faq_interactions 
+       WHERE timestamp::date = $1::date`,
+      [dateParam]
+    );
+
+    console.log(`Hourly result:`, hourlyResult.rows);
+    console.log(`Total result:`, totalResult.rows);
+
+    const totalQueries = parseInt(totalResult.rows[0].total);
+
+    // Create a complete 24-hour array (0-23) with counts
+    const hourlyData = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const hourData = hourlyResult.rows.find(
+        (row) => parseInt(row.hour) === hour
+      );
+      const count = hourData ? parseInt(hourData.count) : 0;
+      const percentage = totalQueries > 0 ? (count / totalQueries) * 100 : 0;
+
+      hourlyData.push({
+        hour,
+        count,
+        percentage: Math.round(percentage * 100) / 100, // Round to 2 decimal places
+      });
+    }
+
+    res.json({
+      date: dateParam,
+      totalQueries,
+      hourlyData,
+    });
+  } catch (error) {
+    logger.error("Error fetching hourly query data:", error);
+    res.status(500).json({ error: "Failed to fetch hourly query data" });
+  }
+});
+
 export default router;
