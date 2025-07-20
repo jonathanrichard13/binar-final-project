@@ -27,59 +27,57 @@ const Dashboard: React.FC = () => {
     const fetchOverviewData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // Fetch multiple data sources in parallel
-        const [overviewResponse, queriesResponse] = await Promise.all([
-          analyticsApi.getOverview({ timeRange: "24h" }),
-          analyticsApi.getAnalytics({ timeRange: "24h", limit: 1000 }), // Get more queries for trend analysis
-        ]);
-
-        // Process the data
-        const overview = overviewResponse.data;
-        const queries = queriesResponse.data;
-
-        // Process query timestamps to create hourly trend data
-        const hourlyTrends: { [hour: number]: number } = {};
-
-        // Initialize all hours (0-23) with 0 queries
-        for (let i = 0; i < 24; i++) {
-          hourlyTrends[i] = 0;
-        }
-
-        // Count queries by hour from actual timestamps
-        if (queries.queries) {
-          queries.queries.forEach((query: any) => {
-            const hour = new Date(query.timestamp).getHours();
-            hourlyTrends[hour] = (hourlyTrends[hour] || 0) + 1;
-          });
-        }
-
-        // Convert to array format for chart
-        const hourlyTrendArray = Object.entries(hourlyTrends).map(
-          ([hour, count]) => ({
-            hour: parseInt(hour),
-            queries: count,
-          })
-        );
-
-        const overviewStats: OverviewStats = {
-          totalQueries: overview.totalQueries || 0,
-          todayQueries: overview.totalQueries || 0,
-          avgResponseTime: overview.averageResponseTime || 0,
-          successRate: overview.successRate || 0,
-          topFiles:
-            overview.topFaqFiles?.map((file: any) => ({
-              filename: file.source_file,
-              query_count: parseInt(file.usage_count),
-            })) || [],
-          hourlyTrend: hourlyTrendArray,
+        // TEMPORARY: Hardcode data to test chart rendering
+        const testStats: OverviewStats = {
+          totalQueries: 9,
+          todayQueries: 4,
+          avgResponseTime: 0.008,
+          successRate: 88.89,
+          topFiles: [
+            { filename: "billing_payments.txt", query_count: 2 },
+            { filename: "privacy_security.txt", query_count: 2 },
+            { filename: "subscription_plans.txt", query_count: 2 },
+          ],
+          hourlyTrend: [
+            { hour: 0, queries: 0 },
+            { hour: 1, queries: 0 },
+            { hour: 2, queries: 0 },
+            { hour: 3, queries: 0 },
+            { hour: 4, queries: 0 },
+            { hour: 5, queries: 0 },
+            { hour: 6, queries: 0 },
+            { hour: 7, queries: 0 },
+            { hour: 8, queries: 4 }, // 4 queries at 8 AM
+            { hour: 9, queries: 0 },
+            { hour: 10, queries: 0 },
+            { hour: 11, queries: 0 },
+            { hour: 12, queries: 0 },
+            { hour: 13, queries: 0 },
+            { hour: 14, queries: 0 },
+            { hour: 15, queries: 0 },
+            { hour: 16, queries: 0 },
+            { hour: 17, queries: 0 },
+            { hour: 18, queries: 0 },
+            { hour: 19, queries: 0 },
+            { hour: 20, queries: 0 },
+            { hour: 21, queries: 0 },
+            { hour: 22, queries: 0 },
+            { hour: 23, queries: 0 },
+          ],
         };
 
-        setStats(overviewStats);
+        console.log("Using test data:", testStats);
+        setStats(testStats);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch overview data:", err);
-        setError("Failed to load dashboard data");
+        console.error("Detailed error:", err);
+        setError(
+          `Failed to load dashboard data: ${
+            err instanceof Error ? err.message : "Unknown error"
+          }`
+        );
       } finally {
         setLoading(false);
       }

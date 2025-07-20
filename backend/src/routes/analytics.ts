@@ -615,9 +615,7 @@ router.get("/hourly-queries", async (req, res) => {
     const hourlyResult = await pool.query(
       `SELECT 
         EXTRACT(HOUR FROM timestamp) as hour,
-        COUNT(*) as count,
-        MIN(timestamp) as first_timestamp,
-        MAX(timestamp) as last_timestamp
+        COUNT(*) as count
        FROM faq_interactions 
        WHERE timestamp::date = $1::date
        GROUP BY EXTRACT(HOUR FROM timestamp)
@@ -632,9 +630,6 @@ router.get("/hourly-queries", async (req, res) => {
        WHERE timestamp::date = $1::date`,
       [dateParam]
     );
-
-    console.log(`Hourly result:`, hourlyResult.rows);
-    console.log(`Total result:`, totalResult.rows);
 
     const totalQueries = parseInt(totalResult.rows[0].total);
 
