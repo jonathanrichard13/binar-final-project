@@ -28,9 +28,6 @@ const UnansweredQueries: React.FC = () => {
   const [data, setData] = useState<UnansweredQueriesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"count" | "recent">("count");
-  const [groupSimilar, setGroupSimilar] = useState<boolean>(true);
-  const [selectedKeyword, setSelectedKeyword] = useState<string>("");
 
   useEffect(() => {
     const fetchUnansweredQueries = async () => {
@@ -39,8 +36,8 @@ const UnansweredQueries: React.FC = () => {
 
         const response = await analyticsApi.getUnansweredQueries({
           limit: 100,
-          sortBy,
-          groupSimilar,
+          sortBy: "count",
+          groupSimilar: true,
         });
 
         const backendData = response.data;
@@ -88,7 +85,7 @@ const UnansweredQueries: React.FC = () => {
     };
 
     fetchUnansweredQueries();
-  }, [sortBy, groupSimilar]);
+  }, []);
 
   if (loading) {
     return (
@@ -120,56 +117,10 @@ const UnansweredQueries: React.FC = () => {
     );
   }
 
-  const filteredQueries = selectedKeyword
-    ? data.queries.filter((query) =>
-        query.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(selectedKeyword.toLowerCase())
-        )
-      )
-    : data.queries;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Unanswered Queries</h1>
-
-        {/* Controls */}
-        <div className="flex space-x-4">
-          {/* Group Similar Queries Toggle */}
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={groupSimilar}
-              onChange={(e) => setGroupSimilar(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-700">Group similar queries</span>
-          </label>
-
-          {/* Keyword Filter */}
-          <select
-            value={selectedKeyword}
-            onChange={(e) => setSelectedKeyword(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">All Keywords</option>
-            {data.top_keywords.slice(0, 10).map((keyword) => (
-              <option key={keyword.keyword} value={keyword.keyword}>
-                {keyword.keyword} ({keyword.frequency})
-              </option>
-            ))}
-          </select>
-
-          {/* Sort By */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "count" | "recent")}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="count">Sort by Frequency</option>
-            <option value="recent">Sort by Recent</option>
-          </select>
-        </div>
       </div>
 
       {/* Summary Cards */}
@@ -252,7 +203,7 @@ const UnansweredQueries: React.FC = () => {
                 Showing Results
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatNumber(filteredQueries.length)}
+                {formatNumber(data.queries.length)}
               </p>
             </div>
           </div>
@@ -274,22 +225,9 @@ const UnansweredQueries: React.FC = () => {
                   key={keyword.keyword}
                   className="flex items-center justify-between"
                 >
-                  <button
-                    onClick={() =>
-                      setSelectedKeyword(
-                        selectedKeyword === keyword.keyword
-                          ? ""
-                          : keyword.keyword
-                      )
-                    }
-                    className={`text-sm font-medium text-left hover:text-blue-600 transition-colors ${
-                      selectedKeyword === keyword.keyword
-                        ? "text-blue-600"
-                        : "text-gray-700"
-                    }`}
-                  >
+                  <span className="text-sm font-medium text-gray-700">
                     {keyword.keyword}
-                  </button>
+                  </span>
                   <div className="flex items-center space-x-2">
                     <div className="w-16 bg-gray-200 rounded-full h-2">
                       <div
@@ -386,14 +324,9 @@ const UnansweredQueries: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
               Unanswered Queries
-              {selectedKeyword && (
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (filtered by "{selectedKeyword}")
-                </span>
-              )}
             </h3>
             <div className="text-sm text-gray-500">
-              {filteredQueries.length} of {data.queries.length} queries
+              {data.queries.length} queries
             </div>
           </div>
         </div>
@@ -405,7 +338,7 @@ const UnansweredQueries: React.FC = () => {
                   Query
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {groupSimilar ? "Frequency" : "Count"}
+                  Frequency
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Keywords
@@ -419,26 +352,16 @@ const UnansweredQueries: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredQueries.length === 0 ? (
+              {data.queries.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center">
                     <div className="text-gray-500">
-                      {selectedKeyword
-                        ? `No unanswered queries found containing "${selectedKeyword}"`
-                        : "No unanswered queries found"}
+                      No unanswered queries found
                     </div>
-                    {selectedKeyword && (
-                      <button
-                        onClick={() => setSelectedKeyword("")}
-                        className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Clear filter
-                      </button>
-                    )}
                   </td>
                 </tr>
               ) : (
-                filteredQueries.map((query, index) => (
+                data.queries.map((query: UnansweredQuery, index: number) => (
                   <tr
                     key={index}
                     className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
@@ -455,14 +378,16 @@ const UnansweredQueries: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
                       <div className="flex flex-wrap gap-1">
-                        {query.keywords.slice(0, 3).map((keyword, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
+                        {query.keywords
+                          .slice(0, 3)
+                          .map((keyword: string, i: number) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
                         {query.keywords.length > 3 && (
                           <span className="text-xs text-gray-400">
                             +{query.keywords.length - 3} more
@@ -477,7 +402,7 @@ const UnansweredQueries: React.FC = () => {
                       <div className="flex flex-wrap gap-1">
                         {query.suggested_categories
                           .slice(0, 2)
-                          .map((category, i) => (
+                          .map((category: string, i: number) => (
                             <span
                               key={i}
                               className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700"

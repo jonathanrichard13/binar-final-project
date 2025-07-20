@@ -28,27 +28,19 @@ const QueryAnalytics: React.FC = () => {
   const [data, setData] = useState<QueryAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeframe, setTimeframe] = useState<"today" | "week" | "month">(
-    "week"
-  );
 
   useEffect(() => {
     const fetchQueryAnalytics = async () => {
       try {
         setLoading(true);
 
-        // Get days based on timeframe
-        const days = timeframe === "today" ? 1 : timeframe === "week" ? 7 : 30;
+        // Use default 7 days for data fetching
+        const days = 7;
 
         // Fetch query data and daily trends
         const [queryResponse, dailyResponse] = await Promise.all([
           analyticsApi.getAnalytics({
-            timeRange:
-              timeframe === "today"
-                ? "24h"
-                : timeframe === "week"
-                ? "7d"
-                : "30d",
+            timeRange: "7d",
             page: 1,
             limit: 100,
           }),
@@ -123,7 +115,7 @@ const QueryAnalytics: React.FC = () => {
     };
 
     fetchQueryAnalytics();
-  }, [timeframe]);
+  }, []);
 
   if (loading) {
     return (
@@ -197,23 +189,6 @@ const QueryAnalytics: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Query Analytics</h1>
-
-        {/* Timeframe Selector */}
-        <div className="flex space-x-2">
-          {(["today", "week", "month"] as const).map((period) => (
-            <button
-              key={period}
-              onClick={() => setTimeframe(period)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                timeframe === period
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {period.charAt(0).toUpperCase() + period.slice(1)}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Summary Stats */}
