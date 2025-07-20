@@ -37,12 +37,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: Activity,
       current: router.pathname === "/performance",
     },
-    {
-      name: "FAQ Stats",
-      href: "/faq-stats",
-      icon: FileText,
-      current: router.pathname === "/faq-stats",
-    },
+    // {
+    //   name: "FAQ Stats",
+    //   href: "/faq-stats",
+    //   icon: FileText,
+    //   current: router.pathname === "/faq-stats",
+    // },
     {
       name: "Unanswered",
       href: "/unanswered",

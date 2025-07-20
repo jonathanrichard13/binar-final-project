@@ -33,16 +33,22 @@ const Dashboard: React.FC = () => {
         const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
 
         // Fetch real data from APIs
-        const [overviewResponse, hourlyResponse, queriesResponse] =
-          await Promise.all([
-            analyticsApi.getOverview({ timeRange: "7d" }),
-            analyticsApi.getHourlyQueries(today),
-            analyticsApi.getAnalytics({ timeRange: "7d", page: 1, limit: 100 }),
-          ]);
+        const [
+          overviewResponse,
+          hourlyResponse,
+          queriesResponse,
+          performanceResponse,
+        ] = await Promise.all([
+          analyticsApi.getOverview({ timeRange: "7d" }),
+          analyticsApi.getHourlyQueries(today),
+          analyticsApi.getAnalytics({ timeRange: "7d", page: 1, limit: 100 }),
+          analyticsApi.getPerformance({ timeRange: "24h" }),
+        ]);
 
         console.log("Overview response:", overviewResponse.data);
         console.log("Hourly response:", hourlyResponse.data);
         console.log("Queries response:", queriesResponse.data);
+        console.log("Performance response:", performanceResponse.data);
 
         const overviewData = overviewResponse.data as any;
         const hourlyData = hourlyResponse.data as any;
@@ -79,24 +85,28 @@ const Dashboard: React.FC = () => {
         const successRate =
           totalCount > 0 ? (successCount / totalCount) * 100 : 0;
 
-        // Calculate average response time
-        let totalResponseTime = 0;
-        let responseTimeCount = 0;
-        if (queriesData.queries) {
-          queriesData.queries.forEach((query: any) => {
-            if (query.processing_time) {
-              totalResponseTime += query.processing_time;
-              responseTimeCount++;
-            }
-          });
+        // Calculate average response time from system_metrics
+        let avgResponseTime = 0;
+        if (performanceResponse.data.systemMetrics) {
+          const responseTimeMetrics =
+            performanceResponse.data.systemMetrics.filter(
+              (metric: any) => metric.metric_name === "response_time"
+            );
+
+          if (responseTimeMetrics.length > 0) {
+            const totalResponseTime = responseTimeMetrics.reduce(
+              (sum: number, metric: any) =>
+                sum + parseFloat(metric.metric_value),
+              0
+            );
+            avgResponseTime = totalResponseTime / responseTimeMetrics.length;
+          }
         }
-        const avgResponseTime =
-          responseTimeCount > 0 ? totalResponseTime / responseTimeCount : 0;
 
         const stats: OverviewStats = {
           totalQueries: queriesData.pagination?.total || 0,
           todayQueries: hourlyData.totalQueries || 0,
-          avgResponseTime: avgResponseTime,
+          avgResponseTime: Math.round(avgResponseTime * 100) / 100, // Round to 2 decimal places
           successRate: Math.round(successRate * 100) / 100,
           topFiles: topFiles,
           hourlyTrend:

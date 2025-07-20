@@ -116,6 +116,25 @@ export interface UnansweredResponse {
   groupSimilar: boolean;
 }
 
+export interface PerformanceResponse {
+  responseTimePercentiles: {
+    p50: number;
+    p95: number;
+    p99: number;
+  };
+  errorRateTrends: Array<{
+    hour: string;
+    total: string;
+    errors: string;
+  }>;
+  systemMetrics: Array<{
+    metric_name: string;
+    metric_value: number;
+    metric_unit: string;
+    timestamp: string;
+  }>;
+}
+
 // Analytics API endpoints
 export const analyticsApi = {
   // Get overview analytics data
@@ -128,7 +147,7 @@ export const analyticsApi = {
 
   // Get performance metrics
   getPerformance: (params?: AnalyticsParams) =>
-    api.get<AnalyticsResponse>("/analytics/performance", { params }),
+    api.get<PerformanceResponse>("/analytics/performance", { params }),
 
   // Get FAQ statistics
   getFaqStats: (params?: AnalyticsParams) =>
@@ -172,6 +191,32 @@ export const analyticsApi = {
         responseType: "blob",
       }
     ),
+
+  // Get system health metrics
+  getSystemHealth: () =>
+    api.get<{
+      cpu: number;
+      memory: number;
+      disk: number;
+      processMemory: number;
+      uptime: {
+        system: number;
+        process: number;
+      };
+      status: string;
+      healthScore: number;
+      timestamp: string;
+      details: {
+        totalMemory: number;
+        freeMemory: number;
+        usedMemory: number;
+        cpuCount: number;
+        loadAverage: number[];
+        platform: string;
+        arch: string;
+        nodeVersion: string;
+      };
+    }>("/analytics/system-health"),
 };
 
 // System API endpoints
