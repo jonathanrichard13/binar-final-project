@@ -1,0 +1,3 @@
+inside folder faq/ make at least 10 dummy faq in the form of txt files. The purpose of those faqs will be to make a model context protocol that reads into those txt files before answering.
+
+After making the faq, make a prd inside docs/ folder about how the MCP will behave, starting from reading the user generated input to vectorizing the input and matching with the txt files. Take one with the highest similarity and answer based on that. But if the highest similarity is still less than 75% then just answer that the question is can not yet be answered. Make the PRD for python code and assume using Claude desktop for the integration

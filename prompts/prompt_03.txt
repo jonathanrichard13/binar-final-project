@@ -1,0 +1,16 @@
+you forgot the most important library, which is "mcp", below is some snippet code i used before:
+
+from mcp.server.fastmcp import FastMCP
+import logging
+
+# Configure logging to output to the console (stdout)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+
+
+def send_log_message(message: str):
+    logging.info(message)
+
+
+# Create an MCP server
+mcp = FastMCP("Demo")
+send_log_message("Starting MCP server...")

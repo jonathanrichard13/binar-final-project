@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "Demo": {
+      "command": "C:\\Users\\User\\.local\\bin\\uv.exe",
+      "args": [
+        "run",
+        "--with",
+        "mcp[cli]",
+        "mcp",
+        "run",
+        "D:\\Belajar\\Binar AI\\Assignment 6 MCP\\mcp-server-demo\\main.py"
+      ]
+    }
+  }
+}
+
+Above is my claude config, edit them to use this MCP folder

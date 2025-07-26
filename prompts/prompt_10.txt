@@ -1,0 +1,1 @@
+make it even more distinvtive so that i know the MCP server is working properly. For example on account management, about how to reset password, "Open the vitalynk app, tap "Forgot Vital Password". Or when going to the profile, instead call the menu "Vitprofile"

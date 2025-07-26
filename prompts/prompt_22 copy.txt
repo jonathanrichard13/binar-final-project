@@ -1,0 +1,1 @@
+i have exported the chat history into the json file, make one new file for each json in txt format, which extracts only the texts of my prompts
