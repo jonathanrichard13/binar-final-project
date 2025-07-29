@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { pool } from "../database/init";
-import { logger } from "../utils/logger";
+import { Router } from 'express';
+import { pool } from '../database/init';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -34,9 +34,9 @@ const router = Router();
  *               $ref: '#/components/schemas/Error'
  */
 // GET /api/analytics/overview
-router.get("/overview", async (req, res) => {
+router.get('/overview', async (req, res) => {
   try {
-    const timeRange = (req.query.timeRange as string) || "24h";
+    const timeRange = (req.query.timeRange as string) || '24h';
     const whereClause = getTimeRangeClause(timeRange);
 
     // Get total queries
@@ -55,7 +55,7 @@ router.get("/overview", async (req, res) => {
     // Get average response time
     const avgResponseTimeResult = await pool.query(
       `SELECT AVG(processing_time) as avg_time FROM faq_interactions 
-       WHERE processing_time IS NOT NULL ${whereClause.replace("WHERE", "AND")}`
+       WHERE processing_time IS NOT NULL ${whereClause.replace('WHERE', 'AND')}`
     );
 
     // Get query volume trends (hourly)
@@ -75,7 +75,7 @@ router.get("/overview", async (req, res) => {
         source_file,
         COUNT(*) as usage_count
        FROM faq_interactions 
-       WHERE source_file IS NOT NULL ${whereClause.replace("WHERE", "AND")}
+       WHERE source_file IS NOT NULL ${whereClause.replace('WHERE', 'AND')}
        GROUP BY source_file
        ORDER BY usage_count DESC
        LIMIT 10`
@@ -95,8 +95,8 @@ router.get("/overview", async (req, res) => {
       topFaqFiles: topFilesResult.rows,
     });
   } catch (error) {
-    logger.error("Error fetching overview analytics:", error);
-    res.status(500).json({ error: "Failed to fetch analytics overview" });
+    logger.error('Error fetching overview analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics overview' });
   }
 });
 
@@ -148,9 +148,9 @@ router.get("/overview", async (req, res) => {
  */
 
 // GET /api/analytics/queries
-router.get("/queries", async (req, res) => {
+router.get('/queries', async (req, res) => {
   try {
-    const timeRange = (req.query.timeRange as string) || "24h";
+    const timeRange = (req.query.timeRange as string) || '24h';
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = (page - 1) * limit;
@@ -197,15 +197,15 @@ router.get("/queries", async (req, res) => {
       statusDistribution: statusDistResult.rows,
     });
   } catch (error) {
-    logger.error("Error fetching query analytics:", error);
-    res.status(500).json({ error: "Failed to fetch query analytics" });
+    logger.error('Error fetching query analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch query analytics' });
   }
 });
 
 // GET /api/analytics/performance
-router.get("/performance", async (req, res) => {
+router.get('/performance', async (req, res) => {
   try {
-    const timeRange = (req.query.timeRange as string) || "24h";
+    const timeRange = (req.query.timeRange as string) || '24h';
     const whereClause = getTimeRangeClause(timeRange);
 
     // Get response time percentiles
@@ -215,7 +215,7 @@ router.get("/performance", async (req, res) => {
         PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY processing_time) as p95,
         PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY processing_time) as p99
        FROM faq_interactions 
-       WHERE processing_time IS NOT NULL ${whereClause.replace("WHERE", "AND")}`
+       WHERE processing_time IS NOT NULL ${whereClause.replace('WHERE', 'AND')}`
     );
 
     // Get error rate over time
@@ -248,15 +248,15 @@ router.get("/performance", async (req, res) => {
       systemMetrics: systemMetricsResult.rows,
     });
   } catch (error) {
-    logger.error("Error fetching performance analytics:", error);
-    res.status(500).json({ error: "Failed to fetch performance analytics" });
+    logger.error('Error fetching performance analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch performance analytics' });
   }
 });
 
 // GET /api/analytics/faq-stats
-router.get("/faq-stats", async (req, res) => {
+router.get('/faq-stats', async (req, res) => {
   try {
-    const timeRange = (req.query.timeRange as string) || "24h";
+    const timeRange = (req.query.timeRange as string) || '24h';
     const whereClause = getTimeRangeClause(timeRange);
 
     // Get FAQ file effectiveness
@@ -271,7 +271,7 @@ router.get("/faq-stats", async (req, res) => {
         ) as success_rate,
         AVG(processing_time) as avg_response_time
        FROM faq_interactions 
-       WHERE source_file IS NOT NULL ${whereClause.replace("WHERE", "AND")}
+       WHERE source_file IS NOT NULL ${whereClause.replace('WHERE', 'AND')}
        GROUP BY source_file
        ORDER BY total_queries DESC`
     );
@@ -282,7 +282,7 @@ router.get("/faq-stats", async (req, res) => {
         source_file,
         COUNT(*) as usage_count
        FROM faq_interactions 
-       WHERE source_file IS NOT NULL ${whereClause.replace("WHERE", "AND")}
+       WHERE source_file IS NOT NULL ${whereClause.replace('WHERE', 'AND')}
        GROUP BY source_file
        HAVING COUNT(*) < 10
        ORDER BY usage_count ASC`
@@ -293,8 +293,8 @@ router.get("/faq-stats", async (req, res) => {
       underutilizedFaqs: utilizationResult.rows,
     });
   } catch (error) {
-    logger.error("Error fetching FAQ stats:", error);
-    res.status(500).json({ error: "Failed to fetch FAQ statistics" });
+    logger.error('Error fetching FAQ stats:', error);
+    res.status(500).json({ error: 'Failed to fetch FAQ statistics' });
   }
 });
 
@@ -372,12 +372,12 @@ router.get("/faq-stats", async (req, res) => {
  */
 
 // GET /api/analytics/unanswered
-router.get("/unanswered", async (req, res) => {
+router.get('/unanswered', async (req, res) => {
   try {
-    const timeRange = (req.query.timeRange as string) || "7d";
+    const timeRange = (req.query.timeRange as string) || '7d';
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
-    const groupSimilar = req.query.groupSimilar === "true";
+    const groupSimilar = req.query.groupSimilar === 'true';
     const offset = (page - 1) * limit;
 
     const whereClause = getTimeRangeClause(timeRange);
@@ -397,7 +397,7 @@ router.get("/unanswered", async (req, res) => {
           AVG(processing_time) as avg_processing_time,
           ARRAY_AGG(DISTINCT session_id) as session_ids
          FROM faq_interactions 
-         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+         WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}
          GROUP BY LOWER(TRIM(query_text))
          ORDER BY frequency DESC, latest_timestamp DESC
          LIMIT $1 OFFSET $2`,
@@ -408,7 +408,7 @@ router.get("/unanswered", async (req, res) => {
       const countResult = await pool.query(
         `SELECT COUNT(DISTINCT LOWER(TRIM(query_text))) as total 
          FROM faq_interactions 
-         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+         WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}`
       );
       totalCount = parseInt(countResult.rows[0].total);
     } else {
@@ -422,7 +422,7 @@ router.get("/unanswered", async (req, res) => {
           processing_time,
           reasoning
          FROM faq_interactions 
-         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+         WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}
          ORDER BY timestamp DESC
          LIMIT $1 OFFSET $2`,
         [limit, offset]
@@ -432,7 +432,7 @@ router.get("/unanswered", async (req, res) => {
       const countResult = await pool.query(
         `SELECT COUNT(*) as total 
          FROM faq_interactions 
-         WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+         WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}`
       );
       totalCount = parseInt(countResult.rows[0].total);
     }
@@ -443,7 +443,7 @@ router.get("/unanswered", async (req, res) => {
         COUNT(*) as total_unanswered,
         COUNT(DISTINCT LOWER(TRIM(query_text))) as unique_queries
        FROM faq_interactions 
-       WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}`
+       WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}`
     );
 
     // Analyze common keywords in unanswered queries for categories
@@ -452,7 +452,7 @@ router.get("/unanswered", async (req, res) => {
         SELECT 
           UNNEST(string_to_array(LOWER(query_text), ' ')) as word
         FROM faq_interactions 
-        WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+        WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}
        )
        SELECT 
         word,
@@ -470,7 +470,7 @@ router.get("/unanswered", async (req, res) => {
         DATE_TRUNC('day', timestamp) as date,
         COUNT(*) as unanswered_count
        FROM faq_interactions 
-       WHERE status = 'no_answer' ${whereClause.replace("WHERE", "AND")}
+       WHERE status = 'no_answer' ${whereClause.replace('WHERE', 'AND')}
        GROUP BY date
        ORDER BY date DESC
        LIMIT 30`
@@ -493,8 +493,8 @@ router.get("/unanswered", async (req, res) => {
       groupSimilar,
     });
   } catch (error) {
-    logger.error("Error fetching unanswered queries:", error);
-    res.status(500).json({ error: "Failed to fetch unanswered queries" });
+    logger.error('Error fetching unanswered queries:', error);
+    res.status(500).json({ error: 'Failed to fetch unanswered queries' });
   }
 });
 
@@ -504,22 +504,22 @@ function getTimeRangeClause(timeRange: string): string {
   let startTime: Date;
 
   switch (timeRange) {
-    case "1h":
+    case '1h':
       startTime = new Date(now.getTime() - 60 * 60 * 1000);
       break;
-    case "24h":
+    case '24h':
       startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       break;
-    case "7d":
+    case '7d':
       startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       break;
-    case "30d":
+    case '30d':
       startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       break;
-    case "90d":
+    case '90d':
       startTime = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
       break;
-    case "1y":
+    case '1y':
       startTime = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
       break;
     default:
@@ -583,14 +583,14 @@ function getTimeRangeClause(timeRange: string): string {
  */
 
 // GET /api/analytics/hourly-queries
-router.get("/hourly-queries", async (req, res) => {
+router.get('/hourly-queries', async (req, res) => {
   try {
     const dateParam = req.query.date as string;
 
     // Validate date parameter
     if (!dateParam) {
       return res.status(400).json({
-        error: "Date parameter is required (format: YYYY-MM-DD)",
+        error: 'Date parameter is required (format: YYYY-MM-DD)',
       });
     }
 
@@ -598,7 +598,7 @@ router.get("/hourly-queries", async (req, res) => {
     const requestedDate = new Date(dateParam);
     if (isNaN(requestedDate.getTime())) {
       return res.status(400).json({
-        error: "Invalid date format. Use YYYY-MM-DD format",
+        error: 'Invalid date format. Use YYYY-MM-DD format',
       });
     }
 
@@ -609,7 +609,7 @@ router.get("/hourly-queries", async (req, res) => {
     const endOfDay = new Date(requestedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log(`Querying for date: ${dateParam}`);
+    logger.info(`Querying for date: ${dateParam}`);
 
     // Get hourly query counts - keep it simple and use timestamp as stored
     const hourlyResult = await pool.query(
@@ -637,7 +637,7 @@ router.get("/hourly-queries", async (req, res) => {
     const hourlyData = [];
     for (let hour = 0; hour < 24; hour++) {
       const hourData = hourlyResult.rows.find(
-        (row) => parseInt(row.hour) === hour
+        row => parseInt(row.hour) === hour
       );
       const count = hourData ? parseInt(hourData.count) : 0;
       const percentage = totalQueries > 0 ? (count / totalQueries) * 100 : 0;
@@ -655,8 +655,8 @@ router.get("/hourly-queries", async (req, res) => {
       hourlyData,
     });
   } catch (error) {
-    logger.error("Error fetching hourly query data:", error);
-    res.status(500).json({ error: "Failed to fetch hourly query data" });
+    logger.error('Error fetching hourly query data:', error);
+    res.status(500).json({ error: 'Failed to fetch hourly query data' });
   }
 });
 
@@ -703,7 +703,7 @@ router.get("/hourly-queries", async (req, res) => {
  */
 
 // GET /api/analytics/daily-queries
-router.get("/daily-queries", async (req, res) => {
+router.get('/daily-queries', async (req, res) => {
   try {
     const daysParam = req.query.days as string;
     const days = daysParam ? parseInt(daysParam) : 7;
@@ -711,11 +711,11 @@ router.get("/daily-queries", async (req, res) => {
     // Validate days parameter
     if (isNaN(days) || days < 1 || days > 365) {
       return res.status(400).json({
-        error: "Days parameter must be a number between 1 and 365",
+        error: 'Days parameter must be a number between 1 and 365',
       });
     }
 
-    console.log(`Querying for last ${days} days`);
+    logger.info(`Querying for last ${days} days`);
 
     // Get daily query counts - extract date from timestamp string to avoid timezone issues
     const dailyResult = await pool.query(
@@ -749,7 +749,7 @@ router.get("/daily-queries", async (req, res) => {
       const dateStr = dateResult.rows[0].target_date;
 
       // Find if we have data for this date
-      const dayData = dailyResult.rows.find((row) => row.date === dateStr);
+      const dayData = dailyResult.rows.find(row => row.date === dateStr);
       const count = dayData ? parseInt(dayData.count) : 0;
       const percentage = totalQueries > 0 ? (count / totalQueries) * 100 : 0;
 
@@ -760,24 +760,24 @@ router.get("/daily-queries", async (req, res) => {
       });
     }
 
-    console.log("Raw database results:", dailyResult.rows);
-    console.log("Processed daily data:", dailyData);
+    logger.debug('Raw database results:', dailyResult.rows);
+    logger.debug('Processed daily data:', dailyData);
 
     res.json({
       totalQueries,
       dailyData,
     });
   } catch (error) {
-    logger.error("Error fetching daily query data:", error);
-    res.status(500).json({ error: "Failed to fetch daily query data" });
+    logger.error('Error fetching daily query data:', error);
+    res.status(500).json({ error: 'Failed to fetch daily query data' });
   }
 });
 
 // GET /api/analytics/system-health
-router.get("/system-health", async (req, res) => {
+router.get('/system-health', async (req, res) => {
   try {
-    const os = require("os");
-    const process = require("process");
+    const os = require('os');
+    const process = require('process');
 
     // Get system metrics
     const totalMemory = os.totalmem();
@@ -809,10 +809,10 @@ router.get("/system-health", async (req, res) => {
       (100 - diskUsage) * 0.2 +
       (processUptime > 3600 ? 100 : (processUptime / 3600) * 100) * 0.2;
 
-    let status = "Good";
-    if (healthScore < 50) status = "Critical";
-    else if (healthScore < 70) status = "Warning";
-    else if (healthScore < 85) status = "Fair";
+    let status = 'Good';
+    if (healthScore < 50) status = 'Critical';
+    else if (healthScore < 70) status = 'Warning';
+    else if (healthScore < 85) status = 'Fair';
 
     res.json({
       cpu: Math.round(cpuUsage * 100) / 100,
@@ -838,8 +838,8 @@ router.get("/system-health", async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("Error fetching system health:", error);
-    res.status(500).json({ error: "Failed to fetch system health" });
+    logger.error('Error fetching system health:', error);
+    res.status(500).json({ error: 'Failed to fetch system health' });
   }
 });
 

@@ -1,5 +1,5 @@
-import AnalyticsService from "../services/analyticsService";
-import { logger } from "../utils/logger";
+import AnalyticsService from '../services/analyticsService';
+import { logger } from '../utils/logger';
 
 /**
  * Example integration middleware for logging MCP FAQ queries
@@ -31,10 +31,10 @@ export class MCPAnalyticsIntegration {
   ): Promise<void> {
     try {
       const status = response.success
-        ? "success"
+        ? 'success'
         : response.error
-        ? "error"
-        : "no_answer";
+          ? 'error'
+          : 'no_answer';
 
       await AnalyticsService.logQuery({
         queryText: request.query,
@@ -55,18 +55,18 @@ export class MCPAnalyticsIntegration {
 
       // Log system metrics
       await AnalyticsService.logSystemMetric(
-        "query_processing_time",
+        'query_processing_time',
         response.processingTime,
-        "milliseconds"
+        'milliseconds'
       );
 
-      logger.info("MCP query logged to analytics", {
+      logger.info('MCP query logged to analytics', {
         query: request.query.substring(0, 100), // First 100 chars
         status,
         processingTime: response.processingTime,
       });
     } catch (error) {
-      logger.error("Failed to log MCP query to analytics:", error);
+      logger.error('Failed to log MCP query to analytics:', error);
       // Don't throw - analytics logging shouldn't break the main functionality
     }
   }
@@ -88,8 +88,8 @@ export class MCPAnalyticsIntegration {
         // Log to analytics (async, non-blocking)
         MCPAnalyticsIntegration.logMCPQuery(
           {
-            query: req.body?.query || req.query?.q || "Unknown query",
-            sessionId: req.headers["x-session-id"] || req.sessionID,
+            query: req.body?.query || req.query?.q || 'Unknown query',
+            sessionId: req.headers['x-session-id'] || req.sessionID,
             timestamp: new Date(),
           },
           {
@@ -100,8 +100,8 @@ export class MCPAnalyticsIntegration {
             processingTime,
             error: body.error,
           }
-        ).catch((err) => {
-          logger.error("Analytics logging failed:", err);
+        ).catch(err => {
+          logger.error('Analytics logging failed:', err);
         });
 
         // Call original json method
@@ -128,7 +128,7 @@ export class MCPAnalyticsIntegration {
 
       logger.info(`Batch logged ${queries.length} queries to analytics`);
     } catch (error) {
-      logger.error("Failed to batch log queries:", error);
+      logger.error('Failed to batch log queries:', error);
     }
   }
 }

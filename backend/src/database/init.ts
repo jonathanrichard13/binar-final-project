@@ -1,12 +1,12 @@
-import { Pool } from "pg";
-import { logger } from "../utils/logger";
+import { Pool } from 'pg';
+import { logger } from '../utils/logger';
 
 const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: parseInt(process.env.DB_PORT || "5432"),
-  database: process.env.DB_NAME || "faq_analytics",
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "password",
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME || 'faq_analytics',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'password',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -15,13 +15,13 @@ const pool = new Pool({
 export async function initializeDatabase(): Promise<void> {
   try {
     await pool.connect();
-    logger.info("Database connection established");
+    logger.info('Database connection established');
 
     // Create tables if they don't exist
     await createTables();
-    logger.info("Database tables verified/created");
+    logger.info('Database tables verified/created');
   } catch (error) {
-    logger.error("Database initialization failed:", error);
+    logger.error('Database initialization failed:', error);
     throw error;
   }
 }

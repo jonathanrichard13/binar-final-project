@@ -1,9 +1,9 @@
-import { pool } from "../database/init";
-import { logger } from "../utils/logger";
+import { pool } from '../database/init';
+import { logger } from '../utils/logger';
 
 export interface QueryLogData {
   queryText: string;
-  status: "success" | "no_answer" | "error";
+  status: 'success' | 'no_answer' | 'error';
   sourceFile?: string;
   reasoning?: string;
   processingTime?: number;
@@ -30,13 +30,13 @@ export class AnalyticsService {
         ]
       );
 
-      logger.info("Query logged successfully", {
+      logger.info('Query logged successfully', {
         status: data.status,
         sourceFile: data.sourceFile,
         processingTime: data.processingTime,
       });
     } catch (error) {
-      logger.error("Failed to log query:", error);
+      logger.error('Failed to log query:', error);
       throw error;
     }
   }
@@ -49,11 +49,11 @@ export class AnalyticsService {
   ): Promise<void> {
     try {
       await pool.query(
-        "INSERT INTO system_metrics (metric_name, metric_value, metric_unit) VALUES ($1, $2, $3)",
+        'INSERT INTO system_metrics (metric_name, metric_value, metric_unit) VALUES ($1, $2, $3)',
         [metricName, metricValue, metricUnit || null]
       );
     } catch (error) {
-      logger.error("Failed to log system metric:", error);
+      logger.error('Failed to log system metric:', error);
       throw error;
     }
   }
@@ -80,7 +80,7 @@ export class AnalyticsService {
         [fileName, wasSuccessful ? 1 : 0]
       );
     } catch (error) {
-      logger.error("Failed to update FAQ file stats:", error);
+      logger.error('Failed to update FAQ file stats:', error);
       throw error;
     }
   }
@@ -110,7 +110,7 @@ export class AnalyticsService {
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      logger.error("Failed to get real-time metrics:", error);
+      logger.error('Failed to get real-time metrics:', error);
       throw error;
     }
   }
@@ -132,7 +132,7 @@ export class AnalyticsService {
 
       return result.rows;
     } catch (error) {
-      logger.error("Failed to get performance trends:", error);
+      logger.error('Failed to get performance trends:', error);
       throw error;
     }
   }
@@ -157,8 +157,8 @@ export class AnalyticsService {
 
       if (errorRate > 10) {
         alerts.push({
-          type: "high_error_rate",
-          severity: "high",
+          type: 'high_error_rate',
+          severity: 'high',
           message: `High error rate detected: ${errorRate.toFixed(
             2
           )}% in the last hour`,
@@ -178,8 +178,8 @@ export class AnalyticsService {
       if (avgTime > 3000) {
         // 3 seconds
         alerts.push({
-          type: "slow_response",
-          severity: "medium",
+          type: 'slow_response',
+          severity: 'medium',
           message: `Slow average response time: ${avgTime.toFixed(
             0
           )}ms in the last hour`,
@@ -194,8 +194,8 @@ export class AnalyticsService {
         new Date().getHours() <= 17
       ) {
         alerts.push({
-          type: "low_volume",
-          severity: "low",
+          type: 'low_volume',
+          severity: 'low',
           message: `Unusually low query volume: ${total} queries in the last hour`,
           timestamp: new Date().toISOString(),
         });
@@ -203,7 +203,7 @@ export class AnalyticsService {
 
       return { alerts };
     } catch (error) {
-      logger.error("Failed to check for anomalies:", error);
+      logger.error('Failed to check for anomalies:', error);
       return { alerts: [] };
     }
   }

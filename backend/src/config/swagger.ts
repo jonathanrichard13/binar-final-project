@@ -1,130 +1,130 @@
-import swaggerJSDoc from "swagger-jsdoc";
+import swaggerJSDoc from 'swagger-jsdoc';
 
 const options: swaggerJSDoc.Options = {
   definition: {
-    openapi: "3.0.0",
+    openapi: '3.0.0',
     info: {
-      title: "FAQ Analytics Dashboard API",
-      version: "1.0.0",
+      title: 'FAQ Analytics Dashboard API',
+      version: '1.0.0',
       description:
-        "API for FAQ Analytics Dashboard - Monitor and analyze FAQ MCP system performance",
+        'API for FAQ Analytics Dashboard - Monitor and analyze FAQ MCP system performance',
       contact: {
-        name: "API Support",
-        email: "support@example.com",
+        name: 'API Support',
+        email: 'support@example.com',
       },
     },
     servers: [
       {
         url: `http://localhost:${process.env.PORT || 3001}`,
-        description: "Development server",
+        description: 'Development server',
       },
     ],
     components: {
       schemas: {
         AnalyticsOverview: {
-          type: "object",
+          type: 'object',
           properties: {
             totalQueries: {
-              type: "integer",
+              type: 'integer',
               example: 1543,
-              description: "Total number of queries processed",
+              description: 'Total number of queries processed',
             },
             successRate: {
-              type: "number",
-              format: "float",
+              type: 'number',
+              format: 'float',
               example: 87.5,
-              description: "Success rate percentage",
+              description: 'Success rate percentage',
             },
             averageResponseTime: {
-              type: "number",
-              format: "float",
+              type: 'number',
+              format: 'float',
               example: 245.8,
-              description: "Average response time in milliseconds",
+              description: 'Average response time in milliseconds',
             },
             queryTrends: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  hour: { type: "string", format: "date-time" },
-                  count: { type: "integer" },
+                  hour: { type: 'string', format: 'date-time' },
+                  count: { type: 'integer' },
                 },
               },
             },
             topFaqFiles: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  source_file: { type: "string" },
-                  usage_count: { type: "integer" },
+                  source_file: { type: 'string' },
+                  usage_count: { type: 'integer' },
                 },
               },
             },
           },
         },
         QueryInteraction: {
-          type: "object",
+          type: 'object',
           properties: {
-            id: { type: "integer" },
-            timestamp: { type: "string", format: "date-time" },
-            query_text: { type: "string" },
+            id: { type: 'integer' },
+            timestamp: { type: 'string', format: 'date-time' },
+            query_text: { type: 'string' },
             status: {
-              type: "string",
-              enum: ["success", "no_answer", "error"],
-              example: "success",
+              type: 'string',
+              enum: ['success', 'no_answer', 'error'],
+              example: 'success',
             },
-            source_file: { type: "string", nullable: true },
-            reasoning: { type: "string", nullable: true },
+            source_file: { type: 'string', nullable: true },
+            reasoning: { type: 'string', nullable: true },
             processing_time: {
-              type: "number",
-              format: "float",
+              type: 'number',
+              format: 'float',
               nullable: true,
             },
-            session_id: { type: "string", nullable: true },
-            user_feedback: { type: "integer", nullable: true },
+            session_id: { type: 'string', nullable: true },
+            user_feedback: { type: 'integer', nullable: true },
           },
         },
         SystemHealth: {
-          type: "object",
+          type: 'object',
           properties: {
-            status: { type: "string", example: "healthy" },
-            timestamp: { type: "string", format: "date-time" },
+            status: { type: 'string', example: 'healthy' },
+            timestamp: { type: 'string', format: 'date-time' },
             uptime: {
-              type: "integer",
-              description: "Server uptime in seconds",
+              type: 'integer',
+              description: 'Server uptime in seconds',
             },
             database: {
-              type: "object",
+              type: 'object',
               properties: {
-                status: { type: "string", example: "connected" },
+                status: { type: 'string', example: 'connected' },
                 latency: {
-                  type: "integer",
-                  description: "Database latency in ms",
+                  type: 'integer',
+                  description: 'Database latency in ms',
                 },
               },
             },
             metrics: {
-              type: "object",
+              type: 'object',
               properties: {
-                errorRate: { type: "number", format: "float" },
-                averageResponseTime: { type: "number", format: "float" },
-                totalQueriesLastHour: { type: "integer" },
+                errorRate: { type: 'number', format: 'float' },
+                averageResponseTime: { type: 'number', format: 'float' },
+                totalQueriesLastHour: { type: 'integer' },
               },
             },
           },
         },
         Error: {
-          type: "object",
+          type: 'object',
           properties: {
-            error: { type: "string" },
-            message: { type: "string" },
+            error: { type: 'string' },
+            message: { type: 'string' },
           },
         },
       },
     },
   },
-  apis: ["./src/routes/*.ts"], // Path to the API files
+  apis: ['./src/routes/*.ts'], // Path to the API files
 };
 
 export const swaggerSpec = swaggerJSDoc(options);

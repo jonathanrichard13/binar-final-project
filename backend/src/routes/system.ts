@@ -1,6 +1,6 @@
-import { Router } from "express";
-import { pool } from "../database/init";
-import { logger } from "../utils/logger";
+import { Router } from 'express';
+import { pool } from '../database/init';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -30,11 +30,11 @@ const router = Router();
  *                 error: { type: string }
  */
 // GET /api/system/health
-router.get("/health", async (req, res) => {
+router.get('/health', async (req, res) => {
   try {
     // Check database connection
     const dbStart = Date.now();
-    await pool.query("SELECT 1");
+    await pool.query('SELECT 1');
     const dbLatency = Date.now() - dbStart;
 
     // Get system uptime
@@ -64,11 +64,11 @@ router.get("/health", async (req, res) => {
     const avgResponseTime = parseFloat(avgResponseResult.rows[0].avg_time) || 0;
 
     res.json({
-      status: "healthy",
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       uptime: Math.floor(uptime),
       database: {
-        status: "connected",
+        status: 'connected',
         latency: dbLatency,
       },
       metrics: {
@@ -78,40 +78,40 @@ router.get("/health", async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("Health check failed:", error);
+    logger.error('Health check failed:', error);
     res.status(500).json({
-      status: "unhealthy",
+      status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: "Database connection failed",
+      error: 'Database connection failed',
     });
   }
 });
 
 // POST /api/system/metrics - Log custom system metrics
-router.post("/metrics", async (req, res) => {
+router.post('/metrics', async (req, res) => {
   try {
     const { metricName, metricValue, metricUnit } = req.body;
 
     if (!metricName || metricValue === undefined) {
       return res
         .status(400)
-        .json({ error: "metricName and metricValue are required" });
+        .json({ error: 'metricName and metricValue are required' });
     }
 
     await pool.query(
-      "INSERT INTO system_metrics (metric_name, metric_value, metric_unit) VALUES ($1, $2, $3)",
+      'INSERT INTO system_metrics (metric_name, metric_value, metric_unit) VALUES ($1, $2, $3)',
       [metricName, metricValue, metricUnit || null]
     );
 
-    res.status(201).json({ message: "Metric logged successfully" });
+    res.status(201).json({ message: 'Metric logged successfully' });
   } catch (error) {
-    logger.error("Error logging system metric:", error);
-    res.status(500).json({ error: "Failed to log metric" });
+    logger.error('Error logging system metric:', error);
+    res.status(500).json({ error: 'Failed to log metric' });
   }
 });
 
 // GET /api/system/stats - Get system statistics
-router.get("/stats", async (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
     // Get database statistics
     const dbSizeResult = await pool.query(`
@@ -154,8 +154,8 @@ router.get("/stats", async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("Error fetching system stats:", error);
-    res.status(500).json({ error: "Failed to fetch system statistics" });
+    logger.error('Error fetching system stats:', error);
+    res.status(500).json({ error: 'Failed to fetch system statistics' });
   }
 });
 
