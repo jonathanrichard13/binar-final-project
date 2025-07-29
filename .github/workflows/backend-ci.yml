@@ -1,0 +1,233 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, add-workflows ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: 🔍 Lint Backend Code
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Check Prettier formatting
+        working-directory: ./backend
+        run: npm run format:check
+
+  test:
+    runs-on: ubuntu-latest
+    name: 🧪 Test Backend Code
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: faq_analytics_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ./backend
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: faq_analytics_test
+          DB_USER: test
+          DB_PASSWORD: test
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+  sonarcloud:
+    runs-on: ubuntu-latest
+    name: 📊 SonarCloud Analysis
+    needs: test
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run tests with coverage for SonarCloud
+        working-directory: ./backend
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: ./backend
+          args: >
+            -Dsonar.projectKey=binar-faq-analytics-backend
+            -Dsonar.organization=your-org
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.testExecutionReportPaths=coverage/test-report.xml
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.exclusions=**/*.test.ts,**/*.spec.ts,**/node_modules/**,**/coverage/**,**/dist/**
+
+  build:
+    runs-on: ubuntu-latest
+    name: 🏗️ Build Backend
+    needs: [lint, test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/dist/
+          retention-days: 7
+
+  security:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Scan
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run security audit
+        working-directory: ./backend
+        run: npm audit --audit-level=high
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=backend/package.json
+
+  notify:
+    runs-on: ubuntu-latest
+    name: 📢 Notify Results
+    needs: [lint, test, sonarcloud, build, security]
+    if: always()
+
+    steps:
+      - name: Check job results
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "SonarCloud: ${{ needs.sonarcloud.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "Security: ${{ needs.security.result }}"
+
+      - name: Notify success
+        if: needs.lint.result == 'success' && needs.test.result == 'success' && needs.build.result == 'success'
+        run: echo "✅ All backend CI checks passed successfully!"
+
+      - name: Notify failure
+        if: needs.lint.result == 'failure' || needs.test.result == 'failure' || needs.build.result == 'failure'
+        run: |
+          echo "❌ Some backend CI checks failed!"
+          exit 1
