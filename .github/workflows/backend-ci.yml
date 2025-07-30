@@ -1,0 +1,99 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, development, add-test ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, development ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    # Add PostgreSQL service for testing
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_faq_analytics
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: ./backend
+      run: npm ci
+      
+    - name: Create test environment file
+      working-directory: ./backend
+      run: |
+        cp .env.example .env
+        echo "NODE_ENV=test" >> .env
+        echo "DB_HOST=localhost" >> .env
+        echo "DB_PORT=5432" >> .env
+        echo "DB_NAME=test_faq_analytics" >> .env
+        echo "DB_USER=postgres" >> .env
+        echo "DB_PASSWORD=postgres" >> .env
+      
+    - name: Run linting
+      working-directory: ./backend
+      run: npm run lint:check
+      
+    - name: Check code formatting
+      working-directory: ./backend
+      run: npm run format:check
+      
+    - name: Run tests
+      working-directory: ./backend
+      run: npm run test:ci:basic
+      
+    - name: Generate coverage report
+      working-directory: ./backend
+      run: npm run test:coverage
+      continue-on-error: true
+      
+    - name: Upload coverage reports
+      if: matrix.node-version == '20.x'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage/lcov.info
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+        
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-node-${{ matrix.node-version }}
+        path: |
+          backend/coverage/
+          backend/junit.xml
+        retention-days: 7
