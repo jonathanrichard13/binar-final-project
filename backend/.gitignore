@@ -6,3 +6,6 @@ logs/
 .DS_Store
 .vscode/
 coverage/
+
+# Prevent ESLint config conflicts
+eslint.config.js
