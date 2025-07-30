@@ -1,6 +1,6 @@
-import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   BarChart3,
   Search,
@@ -9,7 +9,7 @@ import {
   AlertCircle,
   Home,
   Settings,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,22 +20,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navigation = [
     {
-      name: "Overview",
-      href: "/",
+      name: 'Overview',
+      href: '/',
       icon: Home,
-      current: router.pathname === "/",
+      current: router.pathname === '/',
     },
     {
-      name: "Query Analytics",
-      href: "/queries",
+      name: 'Query Analytics',
+      href: '/queries',
       icon: Search,
-      current: router.pathname === "/queries",
+      current: router.pathname === '/queries',
     },
     {
-      name: "Performance",
-      href: "/performance",
+      name: 'Performance',
+      href: '/performance',
       icon: Activity,
-      current: router.pathname === "/performance",
+      current: router.pathname === '/performance',
     },
     // {
     //   name: "FAQ Stats",
@@ -44,10 +44,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     //   current: router.pathname === "/faq-stats",
     // },
     {
-      name: "Unanswered",
-      href: "/unanswered",
+      name: 'Unanswered',
+      href: '/unanswered',
       icon: AlertCircle,
-      current: router.pathname === "/unanswered",
+      current: router.pathname === '/unanswered',
     },
   ];
 
@@ -70,15 +70,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   href={item.href}
                   className={`${
                     item.current
-                      ? "bg-primary-50 border-r-2 border-primary-600 text-primary-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      ? 'bg-primary-50 border-r-2 border-primary-600 text-primary-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   } group flex items-center px-2 py-2 text-sm font-medium`}
                 >
                   <item.icon
                     className={`${
                       item.current
-                        ? "text-primary-500"
-                        : "text-gray-400 group-hover:text-gray-500"
+                        ? 'text-primary-500'
+                        : 'text-gray-400 group-hover:text-gray-500'
                     } mr-3 flex-shrink-0 h-5 w-5`}
                   />
                   {item.name}

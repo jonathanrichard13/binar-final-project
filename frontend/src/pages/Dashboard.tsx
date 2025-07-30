@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../utils/api";
-import { formatNumber, formatPercentage } from "../utils/helpers";
-import { LineChart, BarChart } from "../components/Charts";
+import React, { useEffect, useState } from 'react';
+import { analyticsApi } from '../utils/api';
+import { formatNumber, formatPercentage } from '../utils/helpers';
+import { LineChart, BarChart } from '../components/Charts';
 
 interface OverviewStats {
   totalQueries: number;
@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
         setError(null);
 
         // Get today's date for hourly trends
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
         // Fetch real data from APIs
         const [
@@ -39,16 +39,16 @@ const Dashboard: React.FC = () => {
           queriesResponse,
           performanceResponse,
         ] = await Promise.all([
-          analyticsApi.getOverview({ timeRange: "7d" }),
+          analyticsApi.getOverview({ timeRange: '7d' }),
           analyticsApi.getHourlyQueries(today),
-          analyticsApi.getAnalytics({ timeRange: "7d", page: 1, limit: 100 }),
-          analyticsApi.getPerformance({ timeRange: "24h" }),
+          analyticsApi.getAnalytics({ timeRange: '7d', page: 1, limit: 100 }),
+          analyticsApi.getPerformance({ timeRange: '24h' }),
         ]);
 
-        console.log("Overview response:", overviewResponse.data);
-        console.log("Hourly response:", hourlyResponse.data);
-        console.log("Queries response:", queriesResponse.data);
-        console.log("Performance response:", performanceResponse.data);
+        console.log('Overview response:', overviewResponse.data);
+        console.log('Hourly response:', hourlyResponse.data);
+        console.log('Queries response:', queriesResponse.data);
+        console.log('Performance response:', performanceResponse.data);
 
         const overviewData = overviewResponse.data as any;
         const hourlyData = hourlyResponse.data as any;
@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
         const fileMap = new Map<string, number>();
         if (queriesData.queries) {
           queriesData.queries.forEach((query: any) => {
-            const filename = query.source_file || "unknown";
+            const filename = query.source_file || 'unknown';
             fileMap.set(filename, (fileMap.get(filename) || 0) + 1);
           });
         }
@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
         if (queriesData.queries) {
           queriesData.queries.forEach((query: any) => {
             totalCount++;
-            if (query.status === "success") {
+            if (query.status === 'success') {
               successCount++;
             }
           });
@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
         if (performanceResponse.data.systemMetrics) {
           const responseTimeMetrics =
             performanceResponse.data.systemMetrics.filter(
-              (metric: any) => metric.metric_name === "response_time"
+              (metric: any) => metric.metric_name === 'response_time'
             );
 
           if (responseTimeMetrics.length > 0) {
@@ -116,14 +116,14 @@ const Dashboard: React.FC = () => {
             })) || [],
         };
 
-        console.log("Processed stats:", stats);
+        console.log('Processed stats:', stats);
         setStats(stats);
         setError(null);
       } catch (err) {
-        console.error("Detailed error:", err);
+        console.error('Detailed error:', err);
         setError(
           `Failed to load dashboard data: ${
-            err instanceof Error ? err.message : "Unknown error"
+            err instanceof Error ? err.message : 'Unknown error'
           }`
         );
       } finally {
@@ -166,17 +166,17 @@ const Dashboard: React.FC = () => {
   const chartData = {
     labels: stats.hourlyTrend.map((item) => {
       const hour = item.hour;
-      if (hour === 0) return "12 AM";
-      if (hour === 12) return "12 PM";
+      if (hour === 0) return '12 AM';
+      if (hour === 12) return '12 PM';
       if (hour < 12) return `${hour} AM`;
       return `${hour - 12} PM`;
     }),
     datasets: [
       {
-        label: "Queries per Hour",
+        label: 'Queries per Hour',
         data: stats.hourlyTrend.map((item) => item.queries),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4,
         fill: true,
       },
@@ -185,17 +185,17 @@ const Dashboard: React.FC = () => {
 
   // Chart data for top files
   const topFilesData = {
-    labels: stats.topFiles.map((file) => file.filename.replace(".txt", "")),
+    labels: stats.topFiles.map((file) => file.filename.replace('.txt', '')),
     datasets: [
       {
-        label: "Queries",
+        label: 'Queries',
         data: stats.topFiles.map((file) => file.query_count),
         backgroundColor: [
-          "rgba(59, 130, 246, 0.8)",
-          "rgba(16, 185, 129, 0.8)",
-          "rgba(245, 158, 11, 0.8)",
-          "rgba(239, 68, 68, 0.8)",
-          "rgba(139, 92, 246, 0.8)",
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
         ],
       },
     ],
@@ -366,12 +366,12 @@ const Dashboard: React.FC = () => {
               {stats.topFiles.map((file, index) => (
                 <tr
                   key={file.filename}
-                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {file.filename
-                      .replace(".txt", "")
-                      .replace("_", " ")
+                      .replace('.txt', '')
+                      .replace('_', ' ')
                       .toUpperCase()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

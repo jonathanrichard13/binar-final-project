@@ -1,4 +1,4 @@
-import api from "./api";
+import api from '../utils/api';
 
 export interface AnalyticsOverview {
   totalQueries: number;
@@ -18,7 +18,7 @@ export interface QueryInteraction {
   id: number;
   timestamp: string;
   query_text: string;
-  status: "success" | "no_answer" | "error";
+  status: 'success' | 'no_answer' | 'error';
   source_file?: string;
   reasoning?: string;
   processing_time?: number;
@@ -121,7 +121,7 @@ export interface SystemHealth {
 
 export const analyticsService = {
   // Get analytics overview
-  async getOverview(timeRange: string = "24h"): Promise<AnalyticsOverview> {
+  async getOverview(timeRange: string = '24h'): Promise<AnalyticsOverview> {
     const response = await api.get(
       `/api/analytics/overview?timeRange=${timeRange}`
     );
@@ -130,7 +130,7 @@ export const analyticsService = {
 
   // Get query analytics
   async getQueries(
-    timeRange: string = "24h",
+    timeRange: string = '24h',
     page: number = 1,
     limit: number = 50
   ): Promise<QueryAnalytics> {
@@ -141,7 +141,7 @@ export const analyticsService = {
   },
 
   // Get performance metrics
-  async getPerformance(timeRange: string = "24h"): Promise<PerformanceMetrics> {
+  async getPerformance(timeRange: string = '24h'): Promise<PerformanceMetrics> {
     const response = await api.get(
       `/api/analytics/performance?timeRange=${timeRange}`
     );
@@ -149,7 +149,7 @@ export const analyticsService = {
   },
 
   // Get FAQ effectiveness stats
-  async getFaqStats(timeRange: string = "24h"): Promise<FaqStats> {
+  async getFaqStats(timeRange: string = '24h'): Promise<FaqStats> {
     const response = await api.get(
       `/api/analytics/faq-stats?timeRange=${timeRange}`
     );
@@ -158,7 +158,7 @@ export const analyticsService = {
 
   // Get unanswered queries
   async getUnansweredQueries(
-    timeRange: string = "7d",
+    timeRange: string = '7d',
     page: number = 1,
     limit: number = 50,
     groupSimilar: boolean = false
@@ -171,20 +171,20 @@ export const analyticsService = {
 
   // Get system health
   async getSystemHealth(): Promise<SystemHealth> {
-    const response = await api.get("/api/system/health");
+    const response = await api.get('/api/system/health');
     return response.data;
   },
 
   // Export data
   async exportData(
-    format: string = "json",
-    timeRange: string = "24h",
-    dataType: string = "all"
+    format: string = 'json',
+    timeRange: string = '24h',
+    dataType: string = 'all'
   ): Promise<Blob> {
     const response = await api.get(
       `/api/export/data?format=${format}&timeRange=${timeRange}&dataType=${dataType}`,
       {
-        responseType: "blob",
+        responseType: 'blob',
       }
     );
     return response.data;

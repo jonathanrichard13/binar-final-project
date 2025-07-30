@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../utils/api";
-import { formatNumber, formatDate } from "../utils/helpers";
+import React, { useEffect, useState } from 'react';
+import { analyticsApi } from '../utils/api';
+import { formatNumber, formatDate } from '../utils/helpers';
 
 interface UnansweredQuery {
   query: string;
@@ -36,7 +36,7 @@ const UnansweredQueries: React.FC = () => {
 
         const response = await analyticsApi.getUnansweredQueries({
           limit: 100,
-          sortBy: "count",
+          sortBy: 'count',
           groupSimilar: true,
         });
 
@@ -51,7 +51,7 @@ const UnansweredQueries: React.FC = () => {
               keywords: q.query_text
                 ? q.query_text
                     .toLowerCase()
-                    .split(" ")
+                    .split(' ')
                     .filter((word: string) => word.length > 3)
                 : [],
               last_seen: q.latest_timestamp || q.timestamp,
@@ -67,9 +67,9 @@ const UnansweredQueries: React.FC = () => {
             total_unanswered: backendData.summary?.totalUnanswered || 0,
             unique_queries: backendData.summary?.uniqueQueries || 0,
             coverage_gaps: [
-              "Content gaps identified based on query patterns",
-              "Consider adding FAQ sections for frequent unanswered queries",
-              "Review keyword analysis for missing topics",
+              'Content gaps identified based on query patterns',
+              'Consider adding FAQ sections for frequent unanswered queries',
+              'Review keyword analysis for missing topics',
             ],
           },
         };
@@ -77,8 +77,8 @@ const UnansweredQueries: React.FC = () => {
         setData(transformedData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch unanswered queries:", err);
-        setError("Failed to load unanswered queries data");
+        console.error('Failed to fetch unanswered queries:', err);
+        setError('Failed to load unanswered queries data');
       } finally {
         setLoading(false);
       }
@@ -364,7 +364,7 @@ const UnansweredQueries: React.FC = () => {
                 data.queries.map((query: UnansweredQuery, index: number) => (
                   <tr
                     key={index}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                   >
                     <td className="px-6 py-4 text-sm text-gray-900 max-w-md">
                       <div className="truncate" title={query.query}>
