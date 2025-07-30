@@ -1,5 +1,7 @@
 # FAQ Analytics Backend
 
+[![Backend CI](https://github.com/jonathanrichard13/binar-final-project/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/jonathanrichard13/binar-final-project/actions/workflows/backend-ci.yml)
+
 Backend API for the FAQ Analytics Dashboard built with Express.js, TypeScript, and PostgreSQL.
 
 ## Features

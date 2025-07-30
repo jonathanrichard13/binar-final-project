@@ -69,6 +69,7 @@ router.get("/data", async (req, res) => {
     const dataType = (req.query.dataType as string) || "all";
 
     const whereClause = getTimeRangeClause(timeRange);
+    // eslint-disable-next-line prefer-const
     let data: any = {};
 
     // Export FAQ interactions
@@ -115,7 +116,7 @@ router.get("/data", async (req, res) => {
           ROUND((COUNT(CASE WHEN status = 'success' THEN 1 END)::FLOAT / COUNT(*)::FLOAT) * 100, 2) as success_rate,
           AVG(processing_time) as avg_response_time
          FROM faq_interactions 
-         WHERE source_file IS NOT NULL AND ${whereClause.replace('WHERE ', '')}
+         WHERE source_file IS NOT NULL AND ${whereClause.replace("WHERE ", "")}
          GROUP BY source_file
          ORDER BY total_queries DESC`
       );
@@ -127,21 +128,28 @@ router.get("/data", async (req, res) => {
       // Simple CSV conversion for interactions
       const csvData = convertToCSV(data.interactions || []);
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="analytics-${timeRange}.csv"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="analytics-${timeRange}.csv"`
+      );
       res.send(csvData);
     } else {
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Content-Disposition", `attachment; filename="analytics-${timeRange}.json"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="analytics-${timeRange}.json"`
+      );
       res.json({ data });
     }
 
-    logger.info(`Data exported successfully - Format: ${format}, TimeRange: ${timeRange}, DataType: ${dataType}`);
-
+    logger.info(
+      `Data exported successfully - Format: ${format}, TimeRange: ${timeRange}, DataType: ${dataType}`
+    );
   } catch (error) {
     logger.error("Data export failed:", error);
     res.status(500).json({
       error: "Failed to export data",
-      message: error instanceof Error ? error.message : "Unknown error"
+      message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
@@ -149,17 +157,15 @@ router.get("/data", async (req, res) => {
 // Helper function to convert data to CSV
 function convertToCSV(data: any[]): string {
   if (data.length === 0) return "";
-  
+
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(","),
-    ...data.map(row => 
-      headers.map(header => 
-        JSON.stringify(row[header] || "")
-      ).join(",")
-    )
+    ...data.map((row) =>
+      headers.map((header) => JSON.stringify(row[header] || "")).join(",")
+    ),
   ].join("\n");
-  
+
   return csvContent;
 }
 

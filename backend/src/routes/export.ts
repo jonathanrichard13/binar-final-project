@@ -79,6 +79,7 @@ router.get("/data", async (req, res) => {
     const dataType = (req.query.dataType as string) || "all";
 
     const whereClause = getTimeRangeClause(timeRange);
+    // eslint-disable-next-line prefer-const
     let data: any = {};
 
     // Export FAQ interactions

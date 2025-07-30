@@ -1,8 +1,14 @@
 // Mock the dependencies first
 const mockQuery = jest.fn();
+const mockConnect = jest.fn();
+const mockEnd = jest.fn();
+
+// Mock the entire database/init module
 jest.mock("../database/init", () => ({
   pool: {
     query: mockQuery,
+    connect: mockConnect,
+    end: mockEnd,
   },
 }));
 
@@ -114,17 +120,21 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
       // Mock paginated results with proper structure
       const mockQueries = [
         {
-          id: 26,
-          query: "Test query 26",
-          response: "Test response 26",
+          query_text: "Test query 26",
+          status: "success",
+          source_file: "test.txt",
+          processing_time: 250,
           timestamp: "2023-12-01T10:00:00.000Z",
-          response_time: 250,
-          file_name: "test.txt",
+          user_feedback: null,
         },
       ];
 
+      // The /queries endpoint makes 3 queries: main query, count, status distribution
+      mockQuery.mockResolvedValueOnce({ rows: mockQueries }); // main query
       mockQuery.mockResolvedValueOnce({ rows: [{ total: "100" }] }); // count query
-      mockQuery.mockResolvedValueOnce({ rows: mockQueries }); // paginated results
+      mockQuery.mockResolvedValueOnce({
+        rows: [{ status: "success", count: "85" }],
+      }); // status distribution
 
       const response = await request(app)
         .get("/api/analytics/queries?page=2&limit=25")
@@ -132,7 +142,7 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
 
       expect(response.body).toHaveProperty("queries");
       expect(response.body).toHaveProperty("pagination");
-      expect(mockQuery).toHaveBeenCalledTimes(2);
+      expect(mockQuery).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -191,14 +201,21 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
     it("should return unanswered queries", async () => {
       const mockUnansweredData = [
         {
+          id: 1,
           query_text: "unanswered query",
-          frequency: 5,
-          latest_timestamp: new Date(),
+          timestamp: "2023-12-01T10:00:00.000Z",
+          session_id: "sess1",
+          processing_time: 250,
+          reasoning: "No matching FAQ found",
         },
       ];
 
+      // The unanswered route makes 4 queries: main data, count, summary, keyword analysis, time distribution
+      mockQuery.mockResolvedValueOnce({ rows: mockUnansweredData }); // main data
       mockQuery.mockResolvedValueOnce({ rows: [{ total: "50" }] }); // count
-      mockQuery.mockResolvedValueOnce({ rows: mockUnansweredData }); // data
+      mockQuery.mockResolvedValueOnce({
+        rows: [{ total_unanswered: "50", unique_queries: "30" }],
+      }); // summary
       mockQuery.mockResolvedValueOnce({
         rows: [{ word: "test", frequency: "10" }],
       }); // keywords
@@ -213,7 +230,7 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
       expect(response.body).toHaveProperty("unansweredQueries");
       expect(response.body).toHaveProperty("summary");
       expect(response.body).toHaveProperty("pagination");
-      expect(mockQuery).toHaveBeenCalled();
+      expect(mockQuery).toHaveBeenCalledTimes(5);
     });
   });
 
@@ -242,8 +259,15 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
         { date: "2023-12-02", count: "150" },
       ];
 
+      // The daily-queries route makes: 1 daily data query, 1 total query, then date queries for each day (7 days = 7 more queries)
+      mockQuery.mockResolvedValueOnce({ rows: mockDailyData }); // daily data
       mockQuery.mockResolvedValueOnce({ rows: [{ total: "500" }] }); // total count
-      mockQuery.mockResolvedValueOnce({ rows: mockDailyData }); // daily breakdown
+
+      // Mock the date generation queries (7 days)
+      for (let i = 0; i < 7; i++) {
+        const dateStr = `2023-12-${String(i + 1).padStart(2, "0")}`;
+        mockQuery.mockResolvedValueOnce({ rows: [{ target_date: dateStr }] });
+      }
 
       const response = await request(app)
         .get("/api/analytics/daily-queries?days=7")
@@ -252,8 +276,8 @@ describe("Analytics Routes (Simplified - Frontend Used Only)", () => {
       expect(response.body).toHaveProperty("totalQueries");
       expect(response.body).toHaveProperty("dailyData");
       expect(response.body.totalQueries).toBe(500);
-      expect(response.body.dailyData).toHaveLength(2);
-      expect(mockQuery).toHaveBeenCalledTimes(2);
+      expect(response.body.dailyData).toHaveLength(7); // Should include all 7 days
+      expect(mockQuery).toHaveBeenCalledTimes(9); // 2 + 7 date queries
     });
   });
 

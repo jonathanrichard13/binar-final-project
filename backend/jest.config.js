@@ -16,6 +16,8 @@ module.exports = {
     "!src/database/init.ts", // Skip database init (has testing issues)
     "!src/integrations/mcpIntegration.ts", // Skip MCP integration
     "!src/utils/logger.ts", // Skip logger (simple winston setup)
+    "!src/**/*.original.ts", // Exclude backup/original files
+    "!src/**/*.simplified.ts", // Exclude simplified versions
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
@@ -27,7 +29,7 @@ module.exports = {
       statements: 80,
     },
   },
-  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
+  // setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"], // Commented out to avoid conflicts
   testTimeout: 10000,
   clearMocks: true,
   restoreMocks: true,

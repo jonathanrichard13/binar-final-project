@@ -37,8 +37,12 @@ router.get("/health", async (req, res) => {
       WHERE timestamp >= NOW() - INTERVAL '1 hour'
     `);
 
-    const { total, errors } = errorRateResult.rows[0] || { total: 0, errors: 0 };
-    const errorRate = total > 0 ? (parseInt(errors) / parseInt(total)) * 100 : 0;
+    const { total, errors } = errorRateResult.rows[0] || {
+      total: 0,
+      errors: 0,
+    };
+    const errorRate =
+      total > 0 ? (parseInt(errors) / parseInt(total)) * 100 : 0;
 
     // Get average response time
     const avgResponseResult = await pool.query(`
@@ -48,7 +52,9 @@ router.get("/health", async (req, res) => {
         AND processing_time IS NOT NULL
     `);
 
-    const avgResponseTime = parseFloat(avgResponseResult.rows[0]?.avg_time || "0");
+    const avgResponseTime = parseFloat(
+      avgResponseResult.rows[0]?.avg_time || "0"
+    );
 
     const response = {
       status: "healthy",
@@ -56,29 +62,28 @@ router.get("/health", async (req, res) => {
       uptime,
       database: {
         status: "connected",
-        latency: dbLatency
+        latency: dbLatency,
       },
       metrics: {
         errorRate,
         averageResponseTime: avgResponseTime,
-        totalQueriesLastHour: parseInt(total)
-      }
+        totalQueriesLastHour: parseInt(total),
+      },
     };
 
     res.status(200).json(response);
     logger.info("Health check completed successfully");
-    
   } catch (error) {
     logger.error("Health check failed:", error);
-    
+
     res.status(500).json({
       status: "unhealthy",
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : "Unknown error",
       database: {
         status: "disconnected",
-        latency: -1
-      }
+        latency: -1,
+      },
     });
   }
 });
