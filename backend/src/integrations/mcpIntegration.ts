@@ -33,8 +33,8 @@ export class MCPAnalyticsIntegration {
       const status = response.success
         ? "success"
         : response.error
-        ? "error"
-        : "no_answer";
+          ? "error"
+          : "no_answer";
 
       await AnalyticsService.logQuery({
         queryText: request.query,

@@ -47,7 +47,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Initialize Socket.io manager
-const socketManager = new SocketManager(io);
+const _socketManager = new SocketManager(io);
 
 // Swagger Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -72,7 +72,7 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    _next: express.NextFunction
   ) => {
     logger.error("Unhandled error:", err);
     res.status(500).json({

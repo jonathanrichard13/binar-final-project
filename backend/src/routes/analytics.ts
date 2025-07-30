@@ -609,7 +609,7 @@ router.get("/hourly-queries", async (req, res) => {
     const endOfDay = new Date(requestedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log(`Querying for date: ${dateParam}`);
+    logger.debug(`Querying for date: ${dateParam}`);
 
     // Get hourly query counts - keep it simple and use timestamp as stored
     const hourlyResult = await pool.query(
@@ -715,7 +715,7 @@ router.get("/daily-queries", async (req, res) => {
       });
     }
 
-    console.log(`Querying for last ${days} days`);
+    logger.debug(`Querying for last ${days} days`);
 
     // Get daily query counts - extract date from timestamp string to avoid timezone issues
     const dailyResult = await pool.query(
@@ -760,8 +760,8 @@ router.get("/daily-queries", async (req, res) => {
       });
     }
 
-    console.log("Raw database results:", dailyResult.rows);
-    console.log("Processed daily data:", dailyData);
+    logger.debug("Raw database results:", dailyResult.rows);
+    logger.debug("Processed daily data:", dailyData);
 
     res.json({
       totalQueries,

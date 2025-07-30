@@ -11,29 +11,19 @@ function getTimeRangeClause(timeRange: string): string {
 
   switch (timeRange) {
     case "1h":
-      whereClause = `WHERE timestamp >= '${new Date(
-        now.getTime() - 60 * 60 * 1000
-      ).toISOString()}'`;
+      whereClause = `WHERE timestamp >= '${new Date(now.getTime() - 60 * 60 * 1000).toISOString()}'`;
       break;
     case "24h":
-      whereClause = `WHERE timestamp >= '${new Date(
-        now.getTime() - 24 * 60 * 60 * 1000
-      ).toISOString()}'`;
+      whereClause = `WHERE timestamp >= '${new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()}'`;
       break;
     case "7d":
-      whereClause = `WHERE timestamp >= '${new Date(
-        now.getTime() - 7 * 24 * 60 * 60 * 1000
-      ).toISOString()}'`;
+      whereClause = `WHERE timestamp >= '${new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()}'`;
       break;
     case "30d":
-      whereClause = `WHERE timestamp >= '${new Date(
-        now.getTime() - 30 * 24 * 60 * 60 * 1000
-      ).toISOString()}'`;
+      whereClause = `WHERE timestamp >= '${new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()}'`;
       break;
     default:
-      whereClause = `WHERE timestamp >= '${new Date(
-        now.getTime() - 24 * 60 * 60 * 1000
-      ).toISOString()}'`;
+      whereClause = `WHERE timestamp >= '${new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()}'`;
   }
 
   return whereClause;

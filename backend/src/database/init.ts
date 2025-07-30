@@ -13,8 +13,9 @@ const pool = new Pool({
 });
 
 export async function initializeDatabase(): Promise<void> {
+  let client;
   try {
-    await pool.connect();
+    client = await pool.connect();
     logger.info("Database connection established");
 
     // Create tables if they don't exist
@@ -23,13 +24,18 @@ export async function initializeDatabase(): Promise<void> {
   } catch (error) {
     logger.error("Database initialization failed:", error);
     throw error;
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 }
 
 async function createTables(): Promise<void> {
-  const client = await pool.connect();
-
+  let client;
   try {
+    client = await pool.connect();
+
     // FAQ interactions table
     await client.query(`
       CREATE TABLE IF NOT EXISTS faq_interactions (
@@ -82,7 +88,9 @@ async function createTables(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_system_metrics_timestamp ON system_metrics(timestamp);
     `);
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 }
 
