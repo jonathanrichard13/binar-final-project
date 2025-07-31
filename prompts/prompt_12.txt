@@ -1,0 +1,1 @@
+the MCP is now working properly, now  please continue to the analytics dashboard, but first update the PRD to also record each questions that can not yet be answered. Also make a dedicated page for that. Also change the tech stack from streamlit to next js and express with the database in postgresql.

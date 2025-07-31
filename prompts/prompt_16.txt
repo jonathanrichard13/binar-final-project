@@ -1,0 +1,1 @@
+for the database, save the query passed on to the answer_faq instead

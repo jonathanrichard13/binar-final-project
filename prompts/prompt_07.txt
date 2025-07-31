@@ -1,0 +1,1 @@
+the claude is facing error, here is the log file

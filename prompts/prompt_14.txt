@@ -1,0 +1,1 @@
+now in the mcp server, whenever a user query, add them to the database, also make the database based on the PRD and the .env

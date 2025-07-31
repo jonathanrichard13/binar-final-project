@@ -1,0 +1,1 @@
+for the first iteration, no need to add sentence transformer, instead use chain of thoughts in claude. Compare all the dummy files with the question and pick the best file for responding, but if even the best file strays too far, then just say no answer
