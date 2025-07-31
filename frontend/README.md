@@ -181,7 +181,7 @@ The dashboard includes real-time updates via WebSocket:
 const socket = io(process.env.REACT_APP_WS_URL);
 
 // Listen for analytics updates
-socket.on("analytics:update", (data) => {
+socket.on('analytics:update', (data) => {
   // Update dashboard data
 });
 ```
@@ -230,13 +230,11 @@ Charts are implemented using Chart.js with:
 ### Common Issues
 
 1. **API Connection Errors**
-
    - Verify backend server is running
    - Check CORS configuration
    - Validate environment variables
 
 2. **Build Errors**
-
    - Clear node_modules and reinstall
    - Check TypeScript configuration
    - Verify all dependencies are installed

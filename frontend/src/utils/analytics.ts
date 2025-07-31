@@ -3,7 +3,7 @@
 export interface QueryPattern {
   pattern: string;
   frequency: number;
-  sentiment: "positive" | "neutral" | "negative";
+  sentiment: 'positive' | 'neutral' | 'negative';
 }
 
 export interface TimeSeriesData {
@@ -47,64 +47,64 @@ export const extractKeywords = (
   queries: string[]
 ): { keyword: string; frequency: number }[] => {
   const stopWords = new Set([
-    "the",
-    "a",
-    "an",
-    "and",
-    "or",
-    "but",
-    "in",
-    "on",
-    "at",
-    "to",
-    "for",
-    "of",
-    "with",
-    "by",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "being",
-    "have",
-    "has",
-    "had",
-    "do",
-    "does",
-    "did",
-    "will",
-    "would",
-    "should",
-    "could",
-    "can",
-    "may",
-    "might",
-    "must",
-    "how",
-    "what",
-    "where",
-    "when",
-    "why",
-    "who",
-    "which",
-    "this",
-    "that",
-    "these",
-    "those",
-    "i",
-    "you",
-    "he",
-    "she",
-    "it",
-    "we",
-    "they",
-    "me",
-    "him",
-    "her",
-    "us",
-    "them",
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'will',
+    'would',
+    'should',
+    'could',
+    'can',
+    'may',
+    'might',
+    'must',
+    'how',
+    'what',
+    'where',
+    'when',
+    'why',
+    'who',
+    'which',
+    'this',
+    'that',
+    'these',
+    'those',
+    'i',
+    'you',
+    'he',
+    'she',
+    'it',
+    'we',
+    'they',
+    'me',
+    'him',
+    'her',
+    'us',
+    'them',
   ]);
 
   const wordCount = new Map<string, number>();
@@ -112,7 +112,7 @@ export const extractKeywords = (
   queries.forEach((query) => {
     const words = query
       .toLowerCase()
-      .replace(/[^\w\s]/g, " ")
+      .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
       .filter((word) => word.length > 2 && !stopWords.has(word));
 
@@ -144,7 +144,7 @@ export const calculateQueryComplexity = (query: string): number => {
 // Group data by time period
 export const groupByTimePeriod = (
   data: Array<{ timestamp: string; value: number }>,
-  period: "hour" | "day" | "week" | "month"
+  period: 'hour' | 'day' | 'week' | 'month'
 ): TimeSeriesData[] => {
   const grouped = new Map<string, number>();
 
@@ -153,18 +153,18 @@ export const groupByTimePeriod = (
     let key: string;
 
     switch (period) {
-      case "hour":
+      case 'hour':
         key = date.toISOString().substring(0, 13); // YYYY-MM-DDTHH
         break;
-      case "day":
+      case 'day':
         key = date.toISOString().substring(0, 10); // YYYY-MM-DD
         break;
-      case "week":
+      case 'week':
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - date.getDay());
         key = weekStart.toISOString().substring(0, 10);
         break;
-      case "month":
+      case 'month':
         key = date.toISOString().substring(0, 7); // YYYY-MM
         break;
       default:
@@ -185,14 +185,14 @@ export const calculateSuccessRateTrend = (
 ): TimeSeriesData[] => {
   const grouped = groupByTimePeriod(
     data.map((item) => ({ timestamp: item.timestamp, value: 1 })),
-    "day"
+    'day'
   );
 
   const successGrouped = groupByTimePeriod(
     data
       .filter((item) => item.success)
       .map((item) => ({ timestamp: item.timestamp, value: 1 })),
-    "day"
+    'day'
   );
 
   return grouped.map((total) => {
@@ -255,16 +255,16 @@ export const calculateMovingAverage = (
 // Generate color palette for charts
 export const generateChartColors = (count: number): string[] => {
   const baseColors = [
-    "#3B82F6", // blue
-    "#10B981", // green
-    "#F59E0B", // yellow
-    "#EF4444", // red
-    "#8B5CF6", // purple
-    "#EC4899", // pink
-    "#22C55E", // green-500
-    "#F97316", // orange
-    "#6366F1", // indigo
-    "#14B8A6", // teal
+    '#3B82F6', // blue
+    '#10B981', // green
+    '#F59E0B', // yellow
+    '#EF4444', // red
+    '#8B5CF6', // purple
+    '#EC4899', // pink
+    '#22C55E', // green-500
+    '#F97316', // orange
+    '#6366F1', // indigo
+    '#14B8A6', // teal
   ];
 
   if (count <= baseColors.length) {

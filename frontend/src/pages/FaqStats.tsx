@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../utils/api";
-import { formatNumber, formatDate } from "../utils/helpers";
-import { BarChart, DoughnutChart } from "../components/Charts";
+import React, { useEffect, useState } from 'react';
+import { analyticsApi } from '../utils/api';
+import { formatNumber, formatDate } from '../utils/helpers';
+import { BarChart, DoughnutChart } from '../components/Charts';
 
 interface FaqStatsData {
   totalFaqFiles: number;
@@ -36,16 +36,16 @@ const FaqStats: React.FC = () => {
 
         // For now, we'll use mock data since the backend endpoint doesn't exist yet
         const faqCategories = [
-          "account_management",
-          "billing_payments",
-          "customer_support",
-          "file_management",
-          "integrations_api",
-          "mobile_app",
-          "privacy_security",
-          "subscription_plans",
-          "team_collaboration",
-          "technical_issues",
+          'account_management',
+          'billing_payments',
+          'customer_support',
+          'file_management',
+          'integrations_api',
+          'mobile_app',
+          'privacy_security',
+          'subscription_plans',
+          'team_collaboration',
+          'technical_issues',
         ];
 
         const mockData: FaqStatsData = {
@@ -61,7 +61,7 @@ const FaqStats: React.FC = () => {
               ).toISOString(),
             })),
           categoryDistribution: faqCategories.map((category, index) => ({
-            category: category.replace("_", " ").toUpperCase(),
+            category: category.replace('_', ' ').toUpperCase(),
             count: 15 - index,
             percentage: ((15 - index) / 127) * 100,
           })),
@@ -76,8 +76,8 @@ const FaqStats: React.FC = () => {
         setData(mockData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch FAQ stats:", err);
-        setError("Failed to load FAQ statistics");
+        console.error('Failed to fetch FAQ stats:', err);
+        setError('Failed to load FAQ statistics');
       } finally {
         setLoading(false);
       }
@@ -114,19 +114,19 @@ const FaqStats: React.FC = () => {
     labels: data.categoryDistribution.map((item) => item.category),
     datasets: [
       {
-        label: "Questions",
+        label: 'Questions',
         data: data.categoryDistribution.map((item) => item.count),
         backgroundColor: [
-          "rgba(59, 130, 246, 0.8)",
-          "rgba(16, 185, 129, 0.8)",
-          "rgba(245, 158, 11, 0.8)",
-          "rgba(239, 68, 68, 0.8)",
-          "rgba(139, 92, 246, 0.8)",
-          "rgba(236, 72, 153, 0.8)",
-          "rgba(6, 182, 212, 0.8)",
-          "rgba(34, 197, 94, 0.8)",
-          "rgba(251, 146, 60, 0.8)",
-          "rgba(168, 85, 247, 0.8)",
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(6, 182, 212, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
         ],
       },
     ],
@@ -134,14 +134,14 @@ const FaqStats: React.FC = () => {
 
   const accessChartData = {
     labels: data.mostAccessedFiles.map((item) =>
-      item.filename.replace(".txt", "")
+      item.filename.replace('.txt', '')
     ),
     datasets: [
       {
-        label: "Access Count",
+        label: 'Access Count',
         data: data.mostAccessedFiles.map((item) => item.accessCount),
-        backgroundColor: "rgba(59, 130, 246, 0.8)",
-        borderColor: "rgba(59, 130, 246, 1)",
+        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        borderColor: 'rgba(59, 130, 246, 1)',
         borderWidth: 1,
       },
     ],
@@ -301,7 +301,7 @@ const FaqStats: React.FC = () => {
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {file.filename.replace(".txt", "").replace("_", " ")}
+                      {file.filename.replace('.txt', '').replace('_', ' ')}
                     </div>
                     <div className="text-sm text-gray-500">{file.filename}</div>
                   </td>
@@ -318,17 +318,17 @@ const FaqStats: React.FC = () => {
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         file.successRate > 95
-                          ? "bg-green-100 text-green-800"
+                          ? 'bg-green-100 text-green-800'
                           : file.successRate > 90
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
                       }`}
                     >
                       {file.successRate > 95
-                        ? "Excellent"
+                        ? 'Excellent'
                         : file.successRate > 90
-                        ? "Good"
-                        : "Needs Attention"}
+                          ? 'Good'
+                          : 'Needs Attention'}
                     </span>
                   </td>
                 </tr>
@@ -365,7 +365,7 @@ const FaqStats: React.FC = () => {
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {file.filename.replace(".txt", "").replace("_", " ")}
+                      {file.filename.replace('.txt', '').replace('_', ' ')}
                     </div>
                     <div className="text-sm text-gray-500">{file.filename}</div>
                   </td>

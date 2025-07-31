@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../utils/api";
-import { formatNumber, formatDate } from "../utils/helpers";
+import React, { useEffect, useState } from 'react';
+import { analyticsApi } from '../utils/api';
+import { formatNumber, formatDate } from '../utils/helpers';
 
 interface PerformanceData {
   averageResponseTime: number;
@@ -80,10 +80,10 @@ const Performance: React.FC = () => {
         (100 - diskUsage) * 0.2 +
         Math.min(networkQuality, 100) * 0.2;
 
-      let status = "Good";
-      if (overallHealth < 50) status = "Critical";
-      else if (overallHealth < 70) status = "Warning";
-      else if (overallHealth < 85) status = "Fair";
+      let status = 'Good';
+      if (overallHealth < 50) status = 'Critical';
+      else if (overallHealth < 70) status = 'Warning';
+      else if (overallHealth < 85) status = 'Fair';
 
       return {
         cpu: Math.round(cpuUsage),
@@ -93,13 +93,13 @@ const Performance: React.FC = () => {
         status,
       };
     } catch (error) {
-      console.warn("Could not get system health:", error);
+      console.warn('Could not get system health:', error);
       return {
         cpu: 45,
         memory: 60,
         disk: 30,
         uptime: 99.5,
-        status: "Unknown",
+        status: 'Unknown',
       };
     }
   };
@@ -138,7 +138,7 @@ const Performance: React.FC = () => {
         // Process response time history from system metrics
         const responseTimeHistory =
           backendData.systemMetrics
-            ?.filter((metric: any) => metric.metric_name === "response_time")
+            ?.filter((metric: any) => metric.metric_name === 'response_time')
             ?.slice(0, 24)
             ?.reverse()
             ?.map((metric: any) => ({
@@ -178,8 +178,8 @@ const Performance: React.FC = () => {
         });
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch performance data:", err);
-        setError("Failed to load performance data");
+        console.error('Failed to fetch performance data:', err);
+        setError('Failed to load performance data');
       } finally {
         setLoading(false);
       }
@@ -218,7 +218,7 @@ const Performance: React.FC = () => {
             : null
         );
       } catch (error) {
-        console.warn("Failed to refresh system health:", error);
+        console.warn('Failed to refresh system health:', error);
       }
     }, 30000);
 
@@ -352,24 +352,24 @@ const Performance: React.FC = () => {
             <div className="flex-shrink-0">
               <div
                 className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  data.systemHealth.status === "Good"
-                    ? "bg-green-100"
-                    : data.systemHealth.status === "Fair"
-                    ? "bg-yellow-100"
-                    : data.systemHealth.status === "Warning"
-                    ? "bg-orange-100"
-                    : "bg-red-100"
+                  data.systemHealth.status === 'Good'
+                    ? 'bg-green-100'
+                    : data.systemHealth.status === 'Fair'
+                      ? 'bg-yellow-100'
+                      : data.systemHealth.status === 'Warning'
+                        ? 'bg-orange-100'
+                        : 'bg-red-100'
                 }`}
               >
                 <svg
                   className={`w-5 h-5 ${
-                    data.systemHealth.status === "Good"
-                      ? "text-green-600"
-                      : data.systemHealth.status === "Fair"
-                      ? "text-yellow-600"
-                      : data.systemHealth.status === "Warning"
-                      ? "text-orange-600"
-                      : "text-red-600"
+                    data.systemHealth.status === 'Good'
+                      ? 'text-green-600'
+                      : data.systemHealth.status === 'Fair'
+                        ? 'text-yellow-600'
+                        : data.systemHealth.status === 'Warning'
+                          ? 'text-orange-600'
+                          : 'text-red-600'
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -445,13 +445,13 @@ const Performance: React.FC = () => {
               <span className="text-sm text-gray-600">Health Status</span>
               <span
                 className={`text-sm font-medium ${
-                  data.systemHealth.status === "Good"
-                    ? "text-green-600"
-                    : data.systemHealth.status === "Fair"
-                    ? "text-yellow-600"
-                    : data.systemHealth.status === "Warning"
-                    ? "text-orange-600"
-                    : "text-red-600"
+                  data.systemHealth.status === 'Good'
+                    ? 'text-green-600'
+                    : data.systemHealth.status === 'Fair'
+                      ? 'text-yellow-600'
+                      : data.systemHealth.status === 'Warning'
+                        ? 'text-orange-600'
+                        : 'text-red-600'
                 }`}
               >
                 {data.systemHealth.status}
