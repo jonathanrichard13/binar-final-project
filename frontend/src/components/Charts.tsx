@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,8 +10,8 @@ import {
   Tooltip,
   Legend,
   ArcElement,
-} from "chart.js";
-import { Line, Bar, Doughnut } from "react-chartjs-2";
+} from 'chart.js';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -41,19 +41,19 @@ export const LineChart: React.FC<ChartProps> = ({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top" as const,
+        position: 'top' as const,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         grid: {
-          color: "#f3f4f6",
+          color: '#f3f4f6',
         },
       },
       x: {
         grid: {
-          color: "#f3f4f6",
+          color: '#f3f4f6',
         },
       },
     },
@@ -77,19 +77,19 @@ export const BarChart: React.FC<ChartProps> = ({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top" as const,
+        position: 'top' as const,
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         grid: {
-          color: "#f3f4f6",
+          color: '#f3f4f6',
         },
       },
       x: {
         grid: {
-          color: "#f3f4f6",
+          color: '#f3f4f6',
         },
       },
     },
@@ -113,7 +113,7 @@ export const DoughnutChart: React.FC<ChartProps> = ({
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "right" as const,
+        position: 'right' as const,
       },
     },
     ...options,

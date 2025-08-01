@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { analyticsApi } from "../utils/api";
-import { formatNumber, formatDate, formatDateTime } from "../utils/helpers";
-import { LineChart, DoughnutChart } from "../components/Charts";
+import React, { useEffect, useState } from 'react';
+import { analyticsApi } from '../utils/api';
+import { formatNumber, formatDate, formatDateTime } from '../utils/helpers';
+import { LineChart, DoughnutChart } from '../components/Charts';
 
 interface QueryAnalytics {
   totalQueries: number;
@@ -40,15 +40,15 @@ const QueryAnalytics: React.FC = () => {
         // Fetch query data and daily trends
         const [queryResponse, dailyResponse] = await Promise.all([
           analyticsApi.getAnalytics({
-            timeRange: "7d",
+            timeRange: '7d',
             page: 1,
             limit: 100,
           }),
           analyticsApi.getDailyQueries(days),
         ]);
 
-        console.log("Query response:", queryResponse.data);
-        console.log("Daily response:", dailyResponse.data);
+        console.log('Query response:', queryResponse.data);
+        console.log('Daily response:', dailyResponse.data);
 
         // The API returns data directly, not wrapped in a data property
         const queryData = queryResponse.data as any; // Use any to bypass type checking for now
@@ -61,7 +61,7 @@ const QueryAnalytics: React.FC = () => {
         >();
         if (queryData.queries) {
           queryData.queries.forEach((query: any) => {
-            const category = query.source_file || "unknown";
+            const category = query.source_file || 'unknown';
             if (!categoryMap.has(category)) {
               categoryMap.set(category, { count: 0, queries: [] });
             }
@@ -97,18 +97,18 @@ const QueryAnalytics: React.FC = () => {
             queryData.queries?.map((q: any, index: number) => ({
               id: index + 1, // Use index as id instead of random
               query: q.query_text,
-              filename: q.source_file || "unknown",
+              filename: q.source_file || 'unknown',
               response_time: q.processing_time || 0,
               created_at: q.timestamp,
-              success: q.status === "success",
+              success: q.status === 'success',
             })) || [],
         };
 
         setData(transformedData);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch query analytics:", err);
-        setError("Failed to load query analytics data");
+        console.error('Failed to fetch query analytics:', err);
+        setError('Failed to load query analytics data');
       } finally {
         setLoading(false);
       }
@@ -148,10 +148,10 @@ const QueryAnalytics: React.FC = () => {
     ),
     datasets: [
       {
-        label: "Daily Queries",
+        label: 'Daily Queries',
         data: data.queryTrends.map((item) => item.queries),
-        borderColor: "rgb(59, 130, 246)",
-        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.4,
         fill: true,
       },
@@ -161,26 +161,26 @@ const QueryAnalytics: React.FC = () => {
   // Chart data for category breakdown (pie chart)
   const categoryChartData = {
     labels: data.categoryBreakdown.map((cat) =>
-      cat.filename.replace(".txt", "").replace("_", " ").toUpperCase()
+      cat.filename.replace('.txt', '').replace('_', ' ').toUpperCase()
     ),
     datasets: [
       {
-        label: "Queries by Category",
+        label: 'Queries by Category',
         data: data.categoryBreakdown.map((cat) => cat.query_count),
         backgroundColor: [
-          "rgba(59, 130, 246, 0.8)",
-          "rgba(16, 185, 129, 0.8)",
-          "rgba(245, 158, 11, 0.8)",
-          "rgba(239, 68, 68, 0.8)",
-          "rgba(139, 92, 246, 0.8)",
-          "rgba(236, 72, 153, 0.8)",
-          "rgba(34, 197, 94, 0.8)",
-          "rgba(251, 146, 60, 0.8)",
-          "rgba(168, 85, 247, 0.8)",
-          "rgba(6, 182, 212, 0.8)",
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)',
+          'rgba(34, 197, 94, 0.8)',
+          'rgba(251, 146, 60, 0.8)',
+          'rgba(168, 85, 247, 0.8)',
+          'rgba(6, 182, 212, 0.8)',
         ],
         borderWidth: 2,
-        borderColor: "rgba(255, 255, 255, 1)",
+        borderColor: 'rgba(255, 255, 255, 1)',
       },
     ],
   };
@@ -334,7 +334,7 @@ const QueryAnalytics: React.FC = () => {
               {data.recentQueries.slice(0, 10).map((query, index) => (
                 <tr
                   key={query.id}
-                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                 >
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
                     <div className="truncate" title={query.query}>
@@ -343,7 +343,7 @@ const QueryAnalytics: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                      {query.filename.replace(".txt", "").replace("_", " ")}
+                      {query.filename.replace('.txt', '').replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -353,11 +353,11 @@ const QueryAnalytics: React.FC = () => {
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         query.success
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {query.success ? "Success" : "Failed"}
+                      {query.success ? 'Success' : 'Failed'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
@@ -367,7 +367,7 @@ const QueryAnalytics: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                      {query.filename.replace(".txt", "").replace("_", " ")}
+                      {query.filename.replace('.txt', '').replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -377,11 +377,11 @@ const QueryAnalytics: React.FC = () => {
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         query.success
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {query.success ? "Success" : "Failed"}
+                      {query.success ? 'Success' : 'Failed'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

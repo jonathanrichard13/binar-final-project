@@ -1,11 +1,11 @@
-import axios from "axios";
+import axios from 'axios';
 
 // Base API configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:3001/api",
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -18,7 +18,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("Request error:", error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -27,14 +27,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
 // Type definitions
 export interface AnalyticsParams {
-  timeRange?: "1h" | "24h" | "7d" | "30d" | "90d" | "1y";
+  timeRange?: '1h' | '24h' | '7d' | '30d' | '90d' | '1y';
   page?: number;
   limit?: number;
   offset?: number;
@@ -42,7 +42,7 @@ export interface AnalyticsParams {
 
 export interface UnansweredParams {
   limit?: number;
-  sortBy?: "count" | "recent";
+  sortBy?: 'count' | 'recent';
   keyword?: string;
   groupSimilar?: boolean;
 }
@@ -139,23 +139,23 @@ export interface PerformanceResponse {
 export const analyticsApi = {
   // Get overview analytics data
   getOverview: (params?: AnalyticsParams) =>
-    api.get<AnalyticsResponse>("/analytics/overview", { params }),
+    api.get<AnalyticsResponse>('/analytics/overview', { params }),
 
   // Get detailed analytics data with optional filters
   getAnalytics: (params?: AnalyticsParams) =>
-    api.get<AnalyticsResponse>("/analytics/queries", { params }),
+    api.get<AnalyticsResponse>('/analytics/queries', { params }),
 
   // Get performance metrics
   getPerformance: (params?: AnalyticsParams) =>
-    api.get<PerformanceResponse>("/analytics/performance", { params }),
+    api.get<PerformanceResponse>('/analytics/performance', { params }),
 
   // Get FAQ statistics
   getFaqStats: (params?: AnalyticsParams) =>
-    api.get<AnalyticsResponse>("/analytics/faq-stats", { params }),
+    api.get<AnalyticsResponse>('/analytics/faq-stats', { params }),
 
   // Get unanswered queries analysis
   getUnansweredQueries: (params?: UnansweredParams) =>
-    api.get<UnansweredResponse>("/analytics/unanswered", { params }),
+    api.get<UnansweredResponse>('/analytics/unanswered', { params }),
 
   // Get hourly query counts for a specific date
   getHourlyQueries: (date: string) =>
@@ -169,7 +169,7 @@ export const analyticsApi = {
           percentage: number;
         }>;
       };
-    }>("/analytics/hourly-queries", { params: { date } }),
+    }>('/analytics/hourly-queries', { params: { date } }),
 
   // Get daily query counts for a time range
   getDailyQueries: (days: number = 7) =>
@@ -180,15 +180,15 @@ export const analyticsApi = {
         count: number;
         percentage: number;
       }>;
-    }>("/analytics/daily-queries", { params: { days } }),
+    }>('/analytics/daily-queries', { params: { days } }),
 
   // Export analytics data
-  exportData: (format: "csv" | "json" = "csv", params?: AnalyticsParams) =>
+  exportData: (format: 'csv' | 'json' = 'csv', params?: AnalyticsParams) =>
     api.post<Blob>(
-      "/export/data",
+      '/export/data',
       { format, ...params },
       {
-        responseType: "blob",
+        responseType: 'blob',
       }
     ),
 
@@ -216,17 +216,17 @@ export const analyticsApi = {
         arch: string;
         nodeVersion: string;
       };
-    }>("/analytics/system-health"),
+    }>('/analytics/system-health'),
 };
 
 // System API endpoints
 export const systemApi = {
   // Get system health metrics
-  getHealth: () => api.get("/system/health"),
+  getHealth: () => api.get('/system/health'),
 
   // Get system metrics
   getMetrics: (params?: { timeframe?: string }) =>
-    api.get("/system/metrics", { params }),
+    api.get('/system/metrics', { params }),
 };
 
 export default api;
